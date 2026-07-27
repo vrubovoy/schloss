@@ -67,3 +67,5 @@ fit best; add a new section if none fits.
   purple accent on top so the header UI and favicon logo share one
   brand color. Also fixed the favicon's stroke width (2.4 -> 2) to
   match the shared icon-size/stroke rules.
+- Added an "Updated docs" line to the PR checklist template, matching
+  the same addition across the platform's other repos.
