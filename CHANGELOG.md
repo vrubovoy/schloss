@@ -47,6 +47,11 @@ fit best; add a new section if none fits.
 - Improved the browser tab title.
 - Added CODE_OF_CONDUCT.md, SECURITY.md, issue templates, and a pull
   request template.
+- Added a `/help` page: a plain-language usage guide for regular
+  end users (how to sign in, read the service cards, find account
+  settings, switch theme), linked from the Footer's new help link.
+  Text skeleton only for now, with screenshot slots at
+  `public/guide/schloss-*.png` for the user to fill in later.
 
 ## Polish
 - Homepage visual polish: hero illustration, a three-tile highlights strip,
