@@ -48,6 +48,10 @@ fit best; add a new section if none fits.
   each is a separate origin, so `localStorage` isn't shared. Mounted the
   new `ThemeSync` component (schloss-ui#61) pointed at schlussel's
   `/theme-sync.html` hub.
+- The sync above didn't actually work - a freshly-visited origin's own
+  default-theme timestamp could outrank a real pick made moments earlier
+  on another origin. Bumped `schloss-ui` again for the fix
+  (schloss-ui#64).
 
 ## Docs
 - README, AGPL-3.0 LICENSE, CONTRIBUTING.md.
