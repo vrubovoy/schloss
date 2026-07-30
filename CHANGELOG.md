@@ -44,6 +44,10 @@ fit best; add a new section if none fits.
 - Bumped the vendored `schloss-ui` submodule pointer to pick up
   `ThemeToggle`'s dropdown-positioning fix (schloss-ui#59/#60) - routine
   sync, no behavior change reported for schloss's own header.
+- The selected theme didn't carry over to/from schlussel and kuvert -
+  each is a separate origin, so `localStorage` isn't shared. Mounted the
+  new `ThemeSync` component (schloss-ui#61) pointed at schlussel's
+  `/theme-sync.html` hub.
 
 ## Docs
 - README, AGPL-3.0 LICENSE, CONTRIBUTING.md.
