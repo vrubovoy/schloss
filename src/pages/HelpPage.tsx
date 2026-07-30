@@ -73,7 +73,10 @@ export default function HelpPage() {
           <h2 style={{ margin: '0 0 0.75rem', fontSize: '1.0625rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             Первые шаги
           </h2>
-          <ol style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.7 }}>
+          {/* Tailwind's preflight resets ol/ul to `list-style: none`, so the
+              numbers need to be explicitly restored - otherwise paddingLeft
+              below just looks like unexplained indentation. */}
+          <ol style={{ margin: 0, paddingLeft: '1.25rem', listStyleType: 'decimal', color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.7 }}>
             <li>Войди через форму входа Schlüssel (единая для всей платформы).</li>
             <li>На главной странице Schloss увидишь карточки доступных сервисов.</li>
             <li>Открой нужный сервис, нажав на его карточку.</li>
