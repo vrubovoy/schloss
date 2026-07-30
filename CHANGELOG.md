@@ -41,6 +41,9 @@ fit best; add a new section if none fits.
   my own hosted frontend," and only schlussel-web's own Caddyfile is
   supposed to ever set it. Now stripped (`header_up -X-Schlussel-Frontend`)
   before proxying, so it can only ever be absent through this path.
+- Bumped the vendored `schloss-ui` submodule pointer to pick up
+  `ThemeToggle`'s dropdown-positioning fix (schloss-ui#59/#60) - routine
+  sync, no behavior change reported for schloss's own header.
 
 ## Docs
 - README, AGPL-3.0 LICENSE, CONTRIBUTING.md.
