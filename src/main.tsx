@@ -13,9 +13,9 @@ import './index.css'
 applyTheme(getStoredTheme())
 
 // Same origin schlussel's own login links already point at (see
-// lib/authRedirect.ts) - it doubles as the theme-sync hub since schloss's
-// own localStorage can't be read from schlussel's or kuvert's origin
-// directly.
+// lib/authRedirect.ts) - it doubles as the theme-sync API's origin since
+// schloss's own localStorage can't be read from schlussel's or kuvert's
+// origin directly.
 const SCHLUSSEL_URL: string = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
 
 function Root() {
@@ -23,7 +23,7 @@ function Root() {
 
   return (
     <AuthContext.Provider value={auth}>
-      <ThemeSync hubOrigin={SCHLUSSEL_URL} />
+      <ThemeSync apiOrigin={SCHLUSSEL_URL} />
       <RouterProvider router={router} />
     </AuthContext.Provider>
   )
