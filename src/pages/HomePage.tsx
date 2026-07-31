@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Wallet, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Wallet, LayoutDashboard, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, ThemeToggle } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
@@ -54,6 +54,15 @@ const DIENSTE: Dienst[] = [
     url: (import.meta.env as Record<string, string>)['VITE_KUVERT_URL'] ?? 'http://localhost:5174',
     icon: <Wallet size={28} strokeWidth={1.5} />,
     farbe: '#3b82f6',
+    status: 'aktiv',
+  },
+  {
+    id: 'tafel',
+    name: 'Tafel',
+    beschreibung: 'Личные проекты и задачи',
+    url: (import.meta.env as Record<string, string>)['VITE_TAFEL_URL'] ?? 'http://localhost:5175',
+    icon: <LayoutDashboard size={28} strokeWidth={1.5} />,
+    farbe: '#f59e0b',
     status: 'aktiv',
   },
 ]
