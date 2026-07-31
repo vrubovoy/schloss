@@ -3,24 +3,22 @@
 [![Test](https://github.com/zudaR107/schloss/actions/workflows/test.yml/badge.svg)](https://github.com/zudaR107/schloss/actions/workflows/test.yml)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
-Part of the [Schloss platform](https://github.com/zudaR107/Hof).
+Part of the [Hof platform](https://github.com/zudaR107/Hof) — a suite of
+self-hosted personal services:
 
-Schloss ("castle" / "lock" in German) is the home page and launcher for a small suite of
-self-hosted personal services. It's the first thing you see: it shows which services are
-available and, once you're signed in, a bit of personalization.
-
-## How it fits into the platform
-
-Each service is its own repo, named after a German word related to what it does:
-
-- **`schloss`** (this repo) — the home page / launcher
+- **`schloss`** (this repo) — home page / launcher
 - [`schlussel`](https://github.com/zudaR107/schlussel) — auth: accounts, login, tokens
-- [`kuvert`](https://github.com/zudaR107/kuvert) — envelope budgeting, the first real
-  service
+- [`kuvert`](https://github.com/zudaR107/kuvert) — envelope budgeting
+- [`tafel`](https://github.com/zudaR107/tafel) — task/project tracking
+- [`tor`](https://github.com/zudaR107/tor) — reverse-proxy gateway
+- [`schloss-ui`](https://github.com/zudaR107/schloss-ui) — shared frontend components
+- [`schloss-server-kit`](https://github.com/zudaR107/schloss-server-kit) — shared backend auth/CORS kit
 
-The home page requires being signed in — an unauthenticated visitor is redirected
-straight to Schlüssel's hosted login page and back, after which the header shows your
-name and a logout option.
+Schloss ("castle" / "lock" in German) is the home page and launcher for this suite of
+self-hosted personal services. It's the first thing you see: it shows which services are
+available and, once you're signed in, a bit of personalization. The home page requires
+being signed in — an unauthenticated visitor is redirected straight to Schlüssel's
+hosted login page and back, after which the header shows your name and a logout option.
 
 ## Local development
 
