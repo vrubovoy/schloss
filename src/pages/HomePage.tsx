@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Mail, ListChecks, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Mail, ListChecks, StickyNote, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, ThemeToggle } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
@@ -67,6 +67,16 @@ const DIENSTE: Dienst[] = [
     // generic dashboard icon.
     icon: <ListChecks size={28} strokeWidth={1.5} />,
     farbe: '#f59e0b',
+    status: 'aktiv',
+  },
+  {
+    id: 'zettel',
+    name: 'Zettel',
+    beschreibung: 'Быстрое хранилище заметок',
+    url: (import.meta.env as Record<string, string>)['VITE_ZETTEL_URL'] ?? 'http://localhost:5176',
+    // Same note-card glyph as Zettel's own favicon/sidebar badge.
+    icon: <StickyNote size={28} strokeWidth={1.5} />,
+    farbe: '#db2777',
     status: 'aktiv',
   },
 ]
