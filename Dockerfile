@@ -36,6 +36,7 @@ RUN pnpm --filter @zudar107/schloss-ui build
 # discarded and the build always falls back to its hardcoded default.
 ARG VITE_KUVERT_URL=http://localhost:5174
 ARG VITE_TAFEL_URL=http://localhost:5175
+ARG VITE_ZETTEL_URL=http://localhost:5176
 ARG VITE_SCHLUSSEL_URL=http://localhost:4001
 RUN pnpm build
 
