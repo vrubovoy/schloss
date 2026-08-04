@@ -10,6 +10,7 @@ self-hosted personal services:
 - [`schlussel`](https://github.com/zudaR107/schlussel) — auth: accounts, login, tokens
 - [`kuvert`](https://github.com/zudaR107/kuvert) — envelope budgeting
 - [`tafel`](https://github.com/zudaR107/tafel) — task/project tracking
+- [`zettel`](https://github.com/zudaR107/zettel) — markdown note-taking
 - [`tor`](https://github.com/zudaR107/tor) — reverse-proxy gateway
 - [`schloss-ui`](https://github.com/zudaR107/schloss-ui) — shared frontend components
 - [`schloss-server-kit`](https://github.com/zudaR107/schloss-server-kit) — shared backend auth/CORS kit
@@ -37,10 +38,11 @@ pnpm lint
 
 ### Environment variables
 
-See `.env.example`. `VITE_KUVERT_URL` and `VITE_SCHLUSSEL_URL` are read at *build* time
-(Vite bakes them into the bundle) — they're where the Kuvert service card links to and
-where the "Войти" button redirects, respectively. `KUVERT_URL` / `SCHLUSSEL_WEB_URL` are
-the same values, but as the Docker build args `docker-compose.yml` passes through.
+See `.env.example`. `VITE_KUVERT_URL`, `VITE_TAFEL_URL`, `VITE_ZETTEL_URL`, and
+`VITE_SCHLUSSEL_URL` are read at *build* time (Vite bakes them into the bundle) — they're
+where each service card links to and where the "Войти" button redirects, respectively.
+`KUVERT_URL` / `TAFEL_URL` / `ZETTEL_URL` / `SCHLUSSEL_WEB_URL` are the same values, but
+as the Docker build args `docker-compose.yml` passes through.
 
 ## Running with Docker
 
@@ -52,7 +54,7 @@ docker compose up -d
 Does not publish a host port — reached through the
 [tor](https://github.com/zudaR107/tor) gateway (`https://localhost` in local dev - tor's
 Caddy auto-upgrades everything to HTTPS with its own locally-trusted CA), on the same
-`schloss-net` network as `schlussel` and `kuvert` so it can reach both by hostname.
+`schloss-net` network as `schlussel`, `kuvert`, `tafel`, and `zettel`.
 
 ## License
 
