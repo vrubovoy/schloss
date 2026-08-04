@@ -146,7 +146,7 @@ export default function HomePage() {
         </div>
 
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem',
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.75rem',
           marginBottom: '2rem',
         }}>
           {HIGHLIGHTS.map((h) => (
@@ -154,6 +154,7 @@ export default function HomePage() {
               display: 'flex', alignItems: 'flex-start', gap: '0.625rem',
               padding: '0.875rem 1rem', borderRadius: 'var(--radius-md)',
               background: 'var(--bg-surface)', border: '1px solid var(--border)',
+              flex: '0 1 220px',
             }}>
               <div style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }}>{h.icon}</div>
               <div>
