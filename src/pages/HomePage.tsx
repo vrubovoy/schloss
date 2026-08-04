@@ -146,7 +146,7 @@ export default function HomePage() {
         </div>
 
         <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem',
           marginBottom: '2rem',
         }}>
           {HIGHLIGHTS.map((h) => (
@@ -164,7 +164,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
           {DIENSTE.map((d) => <DienstKarte key={d.id} dienst={d} />)}
           <PlatzhalterKarte />
         </div>
