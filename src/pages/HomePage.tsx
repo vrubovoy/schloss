@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Mail, ListChecks, StickyNote, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, ThemeToggle } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
@@ -55,7 +55,9 @@ const DIENSTE: Dienst[] = [
     // Same envelope glyph as Kuvert's own favicon/sidebar badge, not a
     // generic wallet - this card should read as "that specific service".
     icon: <Mail size={28} strokeWidth={1.5} />,
-    farbe: '#3b82f6',
+    // Kuvert's own real accent (teal) - this used to be schlussel's blue
+    // by mistake, making the card read as the wrong service's brand.
+    farbe: '#0d9488',
     status: 'aktiv',
   },
   {
@@ -74,8 +76,9 @@ const DIENSTE: Dienst[] = [
     name: 'Zettel',
     beschreibung: 'Быстрое хранилище заметок',
     url: (import.meta.env as Record<string, string>)['VITE_ZETTEL_URL'] ?? 'http://localhost:5176',
-    // Same note-card glyph as Zettel's own favicon/sidebar badge.
-    icon: <StickyNote size={28} strokeWidth={1.5} />,
+    // Same note-card glyph as Zettel's own favicon/sidebar badge - was
+    // StickyNote by mistake, a different glyph than Zettel actually uses.
+    icon: <NotebookText size={28} strokeWidth={1.5} />,
     farbe: '#db2777',
     status: 'aktiv',
   },
