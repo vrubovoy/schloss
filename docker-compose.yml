@@ -15,6 +15,7 @@ services:
         VITE_KUVERT_URL: ${KUVERT_URL:-https://kuvert.localhost}
         VITE_TAFEL_URL: ${TAFEL_URL:-https://tafel.localhost}
         VITE_ZETTEL_URL: ${ZETTEL_URL:-https://zettel.localhost}
+        VITE_GLOCKE_URL: ${GLOCKE_URL:-https://glocke.localhost}
         VITE_SCHLUSSEL_URL: ${SCHLUSSEL_WEB_URL:-https://auth.localhost}
     restart: unless-stopped
     networks:

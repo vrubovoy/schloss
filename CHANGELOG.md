@@ -66,7 +66,7 @@ fit best; add a new section if none fits.
   from a write and mounted toggles immediately follow a remotely adopted
   theme, preventing delayed or concurrent writes from leaving Schloss stale.
 - The launcher remains intentionally static: build-time URLs produce cards
-  for Kuvert, Tafel, and Zettel plus a non-clickable future-service
+  for Kuvert, Tafel, Zettel, and Glocke plus a non-clickable future-service
   placeholder; Schloss does not perform service discovery or availability
   probes.
 

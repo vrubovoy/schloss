@@ -142,6 +142,7 @@ describe('HomePage', () => {
     ['Kuvert', 'Бюджет по методу конвертов'],
     ['Tafel', 'Личные проекты и задачи'],
     ['Zettel', 'Быстрое хранилище заметок'],
+    ['Glocke', 'Центр уведомлений'],
   ])('renders a clickable %s service card', (name, description) => {
     useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
     render(<HomePage />)
@@ -154,6 +155,13 @@ describe('HomePage', () => {
     useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
     render(<HomePage />)
     expect(screen.getByText('Скоро появятся новые сервисы')).toBeInTheDocument()
+  })
+
+  it('uses Glocke\'s frontend development port when no launcher URL is configured', () => {
+    useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    render(<HomePage />)
+
+    expect(screen.getByRole('link', { name: /Glocke/ })).toHaveAttribute('href', 'http://localhost:5177')
   })
 
   it('does not redirect to the login URL when not loading and user is set', async () => {

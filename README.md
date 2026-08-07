@@ -11,6 +11,7 @@ self-hosted personal services:
 - [`kuvert`](https://github.com/zudaR107/kuvert) — envelope budgeting
 - [`tafel`](https://github.com/zudaR107/tafel) — task/project tracking
 - [`zettel`](https://github.com/zudaR107/zettel) — markdown note-taking
+- [`glocke`](https://github.com/zudaR107/glocke) — in-app notification center and delivery foundation
 - [`tor`](https://github.com/zudaR107/tor) — reverse-proxy gateway
 - [`schloss-ui`](https://github.com/zudaR107/schloss-ui) — shared frontend components
 - [`schloss-server-kit`](https://github.com/zudaR107/schloss-server-kit) — shared backend auth/CORS kit
@@ -22,7 +23,7 @@ The home page requires being signed in: an unauthenticated visitor is automatica
 redirected through Schlüssel's Authorization Code + PKCE flow and back. If the hosted
 auth origin still has a session, that round trip silently reuses it; otherwise Schlüssel
 shows the credentials form. Afterward the header shows your name and a logout option.
-The configured launcher cards currently link to Kuvert, Tafel, and Zettel, followed by a
+The configured launcher cards currently link to Kuvert, Tafel, Zettel, and Glocke, followed by a
 non-clickable placeholder for future services.
 
 Schloss also mounts the shared `ThemeSync` client against Schlüssel's public `/theme`
@@ -47,11 +48,11 @@ pnpm lint
 
 ### Environment variables
 
-See `.env.example`. `VITE_KUVERT_URL`, `VITE_TAFEL_URL`, `VITE_ZETTEL_URL`, and
-`VITE_SCHLUSSEL_URL` are read at *build* time (Vite bakes them into the bundle) — they're
+See `.env.example`. `VITE_KUVERT_URL`, `VITE_TAFEL_URL`, `VITE_ZETTEL_URL`,
+`VITE_GLOCKE_URL`, and `VITE_SCHLUSSEL_URL` are read at *build* time (Vite bakes them into the bundle) — they're
 where each static service card links to and where authentication/account/theme-sync
 navigations and requests are sent, respectively.
-`KUVERT_URL` / `TAFEL_URL` / `ZETTEL_URL` / `SCHLUSSEL_WEB_URL` are the same values, but
+`KUVERT_URL` / `TAFEL_URL` / `ZETTEL_URL` / `GLOCKE_URL` / `SCHLUSSEL_WEB_URL` are the same values, but
 as the Docker build args `docker-compose.yml` passes through. During `pnpm dev`, Vite
 proxies same-origin `/auth` requests to `SCHLUSSEL_API_URL`, which defaults to
 `http://localhost:4000`. Like the production Caddy proxy, it strips any client-supplied
@@ -67,7 +68,7 @@ docker compose up -d
 Does not publish a host port — reached through the
 [tor](https://github.com/zudaR107/tor) gateway (`https://localhost` in local dev - tor's
 Caddy auto-upgrades everything to HTTPS with its own locally-trusted CA), on the same
-`schloss-net` network as `schlussel`, `kuvert`, `tafel`, and `zettel`.
+`schloss-net` network as `schlussel`, `kuvert`, `tafel`, `zettel`, and `glocke`.
 
 ## License
 
