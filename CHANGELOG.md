@@ -41,6 +41,9 @@ fit best; add a new section if none fits.
   my own hosted frontend," and only schlussel-web's own Caddyfile is
   supposed to ever set it. Now stripped (`header_up -X-Schlussel-Frontend`)
   before proxying, so it can only ever be absent through this path.
+- Added the matching `/auth` proxy to the Vite development server, configured
+  by `SCHLUSSEL_API_URL`, and strip `X-Schlussel-Frontend` there too so local
+  development preserves the production proxy's trust boundary.
 - Bumped the vendored `schloss-ui` submodule pointer to pick up
   `ThemeToggle`'s dropdown-positioning fix (schloss-ui#59/#60) - routine
   sync, no behavior change reported for schloss's own header.
@@ -59,6 +62,13 @@ fit best; add a new section if none fits.
   directly to a real API (`GET`/`PUT` schlussel's `/theme`) via plain
   `fetch` - `hubOrigin` prop renamed `apiOrigin`, no more hidden iframe.
   Bumped `schloss-ui` again.
+- Bumped `schloss-ui` so `ThemeSync` reconciles the server-winning response
+  from a write and mounted toggles immediately follow a remotely adopted
+  theme, preventing delayed or concurrent writes from leaving Schloss stale.
+- The launcher remains intentionally static: build-time URLs produce cards
+  for Kuvert, Tafel, and Zettel plus a non-clickable future-service
+  placeholder; Schloss does not perform service discovery or availability
+  probes.
 
 ## Docs
 - README, AGPL-3.0 LICENSE, CONTRIBUTING.md.

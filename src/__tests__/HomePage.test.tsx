@@ -138,11 +138,16 @@ describe('HomePage', () => {
     expect(window.location.href).toContain('return_to=')
   })
 
-  it('renders a clickable "Kuvert" link when not loading and user is set', () => {
+  it.each([
+    ['Kuvert', 'Бюджет по методу конвертов'],
+    ['Tafel', 'Личные проекты и задачи'],
+    ['Zettel', 'Быстрое хранилище заметок'],
+  ])('renders a clickable %s service card', (name, description) => {
     useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
     render(<HomePage />)
-    const kuvertLink = screen.getByRole('link', { name: /Kuvert/ })
-    expect(kuvertLink).toBeInTheDocument()
+    const card = screen.getByRole('link', { name: new RegExp(name) })
+    expect(card).toHaveAttribute('href')
+    expect(card).toHaveTextContent(description)
   })
 
   it('renders the "coming soon" placeholder card with the exact text when not loading and user is set', () => {
