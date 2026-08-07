@@ -16,7 +16,8 @@ Docker alongside `schlussel` and `kuvert`.
 
 ## Before opening a PR
 
-- Run `pnpm test` and `pnpm lint` — CI runs both and will block merges that don't pass.
+- Run `pnpm test`, `pnpm lint`, and `pnpm build` when TypeScript or Vite config changes.
+  CI runs tests and lint; the build supplies the TypeScript check.
 - Add or update tests for any behavior change.
 - Keep commits focused; one logical change per PR is easier to review than several
   bundled together.
