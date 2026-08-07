@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Bell, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, ThemeToggle } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
@@ -80,6 +80,15 @@ const DIENSTE: Dienst[] = [
     // StickyNote by mistake, a different glyph than Zettel actually uses.
     icon: <NotebookText size={28} strokeWidth={1.5} />,
     farbe: '#db2777',
+    status: 'aktiv',
+  },
+  {
+    id: 'glocke',
+    name: 'Glocke',
+    beschreibung: 'Центр уведомлений',
+    url: (import.meta.env as Record<string, string>)['VITE_GLOCKE_URL'] ?? 'http://localhost:5177',
+    icon: <Bell size={28} strokeWidth={1.5} />,
+    farbe: '#e11d48',
     status: 'aktiv',
   },
 ]
