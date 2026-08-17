@@ -5,6 +5,12 @@ Brief log of notable changes, grouped by theme — not a full commit history
 fit best; add a new section if none fits.
 
 ## Auth
+- Added the shared Glocke notification bell to the authenticated home and help
+  headers. Its unread count uses the existing in-memory access token, silently
+  retries one 401 through a single-flight refresh, and never redirects on bell
+  failures. Logout clears local authentication before its network request so
+  the bell aborts immediately. Both bell and launcher destinations use the
+  shared origin normalizer; invalid Glocke origins render no clickable link.
 - Logged-in/out header state via silent token refresh, redirect to
   schlussel's hosted login and back.
 - The home page now requires authentication - unauthenticated visitors

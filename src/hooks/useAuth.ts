@@ -63,9 +63,9 @@ export function useAuthProvider(): AuthState {
   // after this) can never see or clear. This proxied /auth/logout call
   // clears that one immediately instead of leaving it to expire on its own.
   async function logout() {
-    await schluesselFetch('/logout', { method: 'POST' }).catch(() => {})
     setAccessToken(null)
     setUser(null)
+    await schluesselFetch('/logout', { method: 'POST' }).catch(() => {})
   }
 
   return { user, loading, logout, setUser }
