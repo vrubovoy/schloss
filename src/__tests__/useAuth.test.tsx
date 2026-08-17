@@ -120,6 +120,33 @@ describe('useAuthProvider - logout', () => {
     expect(setAccessTokenMock).toHaveBeenCalledWith(null)
   })
 
+  it('clears the local token and user before the /auth/logout request settles', async () => {
+    let resolveLogout!: (response: Response) => void
+    const fetchMock = makeFetchMock(() => new Promise<Response>((resolve) => { resolveLogout = resolve }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { result } = renderHook(() => useAuthProvider())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    act(() => {
+      result.current.setUser(sampleUser)
+    })
+    setAccessTokenMock.mockClear()
+
+    let logoutPromise!: Promise<void>
+    act(() => {
+      logoutPromise = result.current.logout()
+    })
+
+    expect(setAccessTokenMock).toHaveBeenCalledWith(null)
+    expect(result.current.user).toBeNull()
+
+    resolveLogout(okJsonResponse())
+    await act(async () => {
+      await logoutPromise
+    })
+  })
+
   it('still resolves and clears local state even when the /auth/logout fetch rejects with a network error', async () => {
     const fetchMock = makeFetchMock(() => Promise.reject(new Error('network down')))
     vi.stubGlobal('fetch', fetchMock)

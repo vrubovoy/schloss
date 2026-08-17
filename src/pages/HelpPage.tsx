@@ -1,6 +1,8 @@
-import { Header, Footer, ThemeToggle } from '@zudar107/schloss-ui'
+import { Header, Footer, ThemeToggle, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { useAuth } from '../hooks/useAuth'
 import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
+import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
+import { notificationApiClient } from '../lib/notificationApiClient'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -25,7 +27,7 @@ const SECTIONS: Section[] = [
   },
   {
     titel: 'Профиль и выход',
-    text: 'Твоё имя и кружок-аватар — в правом верхнем углу. Нажми на аватар, чтобы открыть настройки аккаунта (смена пароля, активные сессии, удаление аккаунта). Рядом — кнопка выхода.',
+    text: 'Твоё имя и кружок-аватар — в правом верхнем углу. Нажми на аватар, чтобы открыть настройки аккаунта (смена пароля, активные сессии, удаление аккаунта). Рядом — кнопка выхода, а колокольчик открывает уведомления Glocke и показывает число непрочитанных.',
     screenshotSlug: 'header-profile',
     screenshotAlt: 'Верхняя панель с аватаром и кнопкой выхода',
   },
@@ -39,6 +41,11 @@ const SECTIONS: Section[] = [
 
 export default function HelpPage() {
   const { user, logout } = useAuth()
+  const notificationState = useUnreadNotifications({
+    glockeOrigin: GLOCKE_ORIGIN ?? '',
+    userId: user?.id ?? null,
+    apiClient: notificationApiClient,
+  })
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -49,6 +56,9 @@ export default function HelpPage() {
         onSettings={user ? () => { window.location.href = buildSchluesselAccountUrl(window.location.pathname) } : undefined}
         onLogout={user
           ? () => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }
+          : undefined}
+        notifications={user && GLOCKE_NOTIFICATIONS_HREF
+          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState }
           : undefined}
         rightSlot={<ThemeToggle />}
       />

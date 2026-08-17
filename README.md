@@ -22,7 +22,9 @@ service; it does not discover services or probe whether they are currently avail
 The home page requires being signed in: an unauthenticated visitor is automatically
 redirected through Schlüssel's Authorization Code + PKCE flow and back. If the hosted
 auth origin still has a session, that round trip silently reuses it; otherwise Schlüssel
-shows the credentials form. Afterward the header shows your name and a logout option.
+shows the credentials form. Afterward the header shows your name, a logout option, and
+the shared Glocke bell with the current unread-notification count. The bell links to
+Glocke's `/notifications` page and is also available on Schloss's help page while signed in.
 The configured launcher cards currently link to Kuvert, Tafel, Zettel, and Glocke, followed by a
 non-clickable placeholder for future services.
 
@@ -51,7 +53,8 @@ pnpm lint
 See `.env.example`. `VITE_KUVERT_URL`, `VITE_TAFEL_URL`, `VITE_ZETTEL_URL`,
 `VITE_GLOCKE_URL`, and `VITE_SCHLUSSEL_URL` are read at *build* time (Vite bakes them into the bundle) — they're
 where each static service card links to and where authentication/account/theme-sync
-navigations and requests are sent, respectively.
+navigations and requests are sent, respectively. `VITE_GLOCKE_URL` also supplies the
+trusted Glocke origin used by the authenticated header bell.
 `KUVERT_URL` / `TAFEL_URL` / `ZETTEL_URL` / `GLOCKE_URL` / `SCHLUSSEL_WEB_URL` are the same values, but
 as the Docker build args `docker-compose.yml` passes through. During `pnpm dev`, Vite
 proxies same-origin `/auth` requests to `SCHLUSSEL_API_URL`, which defaults to

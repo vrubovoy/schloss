@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { Bell, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
-import { Header, Footer, Badge, ThemeToggle } from '@zudar107/schloss-ui'
+import { Header, Footer, Badge, ThemeToggle, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
 import { buildSchluesselLoginUrl, buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
+import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
+import { notificationApiClient } from '../lib/notificationApiClient'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -40,7 +42,7 @@ interface Dienst {
   id: string
   name: string
   beschreibung: string
-  url: string
+  url: string | null
   icon: React.ReactNode
   farbe: string
   status: 'aktiv' | 'bald'
@@ -86,7 +88,7 @@ const DIENSTE: Dienst[] = [
     id: 'glocke',
     name: 'Glocke',
     beschreibung: 'Центр уведомлений',
-    url: (import.meta.env as Record<string, string>)['VITE_GLOCKE_URL'] ?? 'http://localhost:5177',
+    url: GLOCKE_ORIGIN,
     icon: <Bell size={28} strokeWidth={1.5} />,
     farbe: '#e11d48',
     status: 'aktiv',
@@ -95,6 +97,11 @@ const DIENSTE: Dienst[] = [
 
 export default function HomePage() {
   const { user, loading, logout } = useAuth()
+  const notificationState = useUnreadNotifications({
+    glockeOrigin: GLOCKE_ORIGIN ?? '',
+    userId: user?.id ?? null,
+    apiClient: notificationApiClient,
+  })
 
   // Set synchronously (before logout()'s own async work starts) by
   // onLogout below, so this effect can tell "no user because the session
@@ -136,6 +143,9 @@ export default function HomePage() {
           loggingOutRef.current = true
           void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() })
         }}
+        notifications={GLOCKE_NOTIFICATIONS_HREF
+          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState }
+          : undefined}
         rightSlot={<ThemeToggle />}
       />
 
@@ -190,9 +200,10 @@ export default function HomePage() {
 
 function DienstKarte({ dienst }: { dienst: Dienst }) {
   const aktiv = dienst.status === 'aktiv'
+  const clickable = aktiv && dienst.url !== null
   return (
     <a
-      href={aktiv ? dienst.url : undefined}
+      href={clickable ? dienst.url ?? undefined : undefined}
       className="card"
       style={{
         padding: '1.5rem',
@@ -200,14 +211,14 @@ function DienstKarte({ dienst }: { dienst: Dienst }) {
         flexDirection: 'column',
         gap: '1rem',
         minHeight: 160,
-        cursor: aktiv ? 'pointer' : 'default',
+        cursor: clickable ? 'pointer' : 'default',
         textDecoration: 'none',
         transition: 'box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1)',
         position: 'relative',
         overflow: 'hidden',
       }}
       onMouseEnter={(e) => {
-        if (!aktiv) return
+        if (!clickable) return
         e.currentTarget.style.boxShadow = 'var(--shadow-md)'
         e.currentTarget.style.transform = 'translateY(-2px)'
       }}
