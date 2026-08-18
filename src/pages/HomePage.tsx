@@ -90,7 +90,10 @@ const DIENSTE: Dienst[] = [
     beschreibung: 'Центр уведомлений',
     url: GLOCKE_ORIGIN,
     icon: <Bell size={28} strokeWidth={1.5} />,
-    farbe: '#e11d48',
+    // Blue - the only unclaimed hue among the accents already in use
+    // (teal Kuvert, amber Tafel, pink Zettel, violet Schloss). The
+    // previous rose '#e11d48' read as near-identical to Zettel's pink.
+    farbe: '#2563eb',
     status: 'aktiv',
   },
 ]
