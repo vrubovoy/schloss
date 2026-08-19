@@ -58,7 +58,7 @@ export default function HelpPage() {
           ? () => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }
           : undefined}
         notifications={user && GLOCKE_NOTIFICATIONS_HREF
-          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState }
+          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN ?? '', apiClient: notificationApiClient }
           : undefined}
         rightSlot={<ThemeToggle />}
       />
