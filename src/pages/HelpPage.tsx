@@ -1,8 +1,10 @@
-import { Header, Footer, ThemeToggle, useUnreadNotifications } from '@zudar107/schloss-ui'
+import { Header, Footer, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { useAuth } from '../hooks/useAuth'
 import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
 import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
+
+const SCHLUSSEL_URL = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -46,13 +48,18 @@ export default function HelpPage() {
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
+  const avatarUrl = useAvatarUrl({
+    schluesselOrigin: SCHLUSSEL_URL,
+    userId: user?.id ?? null,
+    apiClient: notificationApiClient,
+  })
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header
         logo={LOGO}
         homeHref="/"
-        user={user}
+        user={user ? { ...user, avatarUrl } : null}
         onSettings={user ? () => { window.location.href = buildSchluesselAccountUrl(window.location.pathname) } : undefined}
         onLogout={user
           ? () => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }
