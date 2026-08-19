@@ -132,7 +132,7 @@ describe('HomePage', () => {
       expect(within(bell).queryByText(/\d+/)).not.toBeInTheDocument()
     })
 
-    it('omits the bell and disables the Glocke launcher card when the configured origin is invalid', async () => {
+    it('omits the bell when the configured origin is invalid', async () => {
       useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
       const fetchMock = vi.fn()
       vi.stubGlobal('fetch', fetchMock)
@@ -143,15 +143,11 @@ describe('HomePage', () => {
       render(<InvalidOriginHomePage />)
 
       expect(within(screen.getByRole('banner')).queryByRole('link', { name: /уведомлен/i })).not.toBeInTheDocument()
-      expect(screen.queryByRole('link', { name: /Glocke/ })).not.toBeInTheDocument()
-      const glockeCard = screen.getByText('Glocke').closest('a')
-      expect(glockeCard).not.toBeNull()
-      expect(glockeCard!).not.toHaveAttribute('href')
       expect(document.documentElement.innerHTML).not.toContain('javascript:')
       expect(fetchMock).not.toHaveBeenCalled()
     })
 
-    it('uses the shared canonical Glocke origin for both header and launcher hrefs', async () => {
+    it('uses the shared canonical Glocke origin for the header bell href', async () => {
       useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(unreadResponse(0)))
       vi.stubEnv('VITE_GLOCKE_URL', 'https://GLOCKE.example.test:443/')
@@ -162,8 +158,6 @@ describe('HomePage', () => {
 
       expect(await within(screen.getByRole('banner')).findByRole('link', { name: /уведомлен/i }))
         .toHaveAttribute('href', 'https://glocke.example.test/notifications')
-      expect(screen.getByRole('link', { name: /Glocke/ }))
-        .toHaveAttribute('href', 'https://glocke.example.test')
     })
 
     it('aborts the unread request and disables the bell when logout removes authentication', async () => {
@@ -329,7 +323,6 @@ describe('HomePage', () => {
     ['Kuvert', 'Бюджет по методу конвертов'],
     ['Tafel', 'Личные проекты и задачи'],
     ['Zettel', 'Быстрое хранилище заметок'],
-    ['Glocke', 'Центр уведомлений'],
   ])('renders a clickable %s service card', (name, description) => {
     useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
     render(<HomePage />)
@@ -342,13 +335,6 @@ describe('HomePage', () => {
     useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
     render(<HomePage />)
     expect(screen.getByText('Скоро появятся новые сервисы')).toBeInTheDocument()
-  })
-
-  it('uses Glocke\'s frontend development port when no launcher URL is configured', () => {
-    useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
-    render(<HomePage />)
-
-    expect(screen.getByRole('link', { name: /Glocke/ })).toHaveAttribute('href', 'http://localhost:5177')
   })
 
   it('does not redirect to the login URL when not loading and user is set', async () => {

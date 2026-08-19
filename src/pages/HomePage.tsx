@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Bell, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, ThemeToggle, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
@@ -84,19 +84,13 @@ const DIENSTE: Dienst[] = [
     farbe: '#db2777',
     status: 'aktiv',
   },
-  {
-    id: 'glocke',
-    name: 'Glocke',
-    beschreibung: 'Центр уведомлений',
-    url: GLOCKE_ORIGIN,
-    icon: <Bell size={28} strokeWidth={1.5} />,
-    // Blue - the only unclaimed hue among the accents already in use
-    // (teal Kuvert, amber Tafel, pink Zettel, violet Schloss). The
-    // previous rose '#e11d48' read as near-identical to Zettel's pink.
-    farbe: '#2563eb',
-    status: 'aktiv',
-  },
 ]
+
+// Glocke (and any future auxiliary/infrastructure service - schlussel's
+// auth is the other member) deliberately has no launcher card here: it's
+// not a content app a user picks from the home page, it's reached only
+// via the shared header bell every service already renders. See
+// GLOCKE_NOTIFICATIONS_HREF wiring on <Header notifications=.../> below.
 
 export default function HomePage() {
   const { user, loading, logout } = useAuth()
