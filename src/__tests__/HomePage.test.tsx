@@ -70,19 +70,44 @@ describe('HomePage', () => {
     } as Response
   }
 
+  function profileResponse() {
+    return {
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ avatarDataUrl: null }),
+      text: () => Promise.resolve('{}'),
+    } as Response
+  }
+
+  // The Header now also fires an independent GET .../auth/profile fetch
+  // (useAvatarUrl) alongside the unread-count one - route by URL so `unread`
+  // (what each test configures/asserts against exactly as before: call
+  // count, call[n] args, queued Once responses, custom implementations
+  // capturing signals) never sees the avatar fetch mixed into its sequence.
+  // `fetchMock` is what actually gets stubbed as globalThis.fetch.
+  function routedFetchMocks(): { fetchMock: ReturnType<typeof vi.fn>; unread: ReturnType<typeof vi.fn> } {
+    const unread = vi.fn()
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes('/auth/profile')) return Promise.resolve(profileResponse())
+      return unread(input, init)
+    })
+    return { fetchMock, unread }
+  }
+
   describe('shared Glocke notification bell', () => {
     it('shows the authenticated bell at the configured Glocke notifications page and sends the bearer only in the unread request header', async () => {
       useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
-      const fetchMock = vi.fn().mockResolvedValue(unreadResponse(0))
+      const { fetchMock, unread } = routedFetchMocks()
+      unread.mockResolvedValue(unreadResponse(0))
       vi.stubGlobal('fetch', fetchMock)
 
       await renderConfiguredHome()
 
       const bell = await within(screen.getByRole('banner')).findByRole('link', { name: /уведомлен/i })
       expect(bell).toHaveAttribute('href', 'https://glocke.example.test/notifications')
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+      await waitFor(() => expect(unread).toHaveBeenCalledTimes(1))
 
-      const [requestUrl, init] = fetchMock.mock.calls[0] as [RequestInfo | URL, RequestInit]
+      const [requestUrl, init] = unread.mock.calls[0] as [RequestInfo | URL, RequestInit]
       expect(String(requestUrl)).toBe('https://glocke.example.test/backend/notifications/unread-count')
       expect(new Headers(init.headers).get('Authorization')).toBe('Bearer access-token-123')
       expect(String(requestUrl)).not.toContain('access-token-123')
@@ -106,13 +131,14 @@ describe('HomePage', () => {
     it('starts without a badge, then shows a positive unread count', async () => {
       useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
       let resolveUnread!: (response: Response) => void
-      vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((resolve) => { resolveUnread = resolve })))
+      const { fetchMock, unread } = routedFetchMocks()
+      unread.mockImplementation(() => new Promise<Response>((resolve) => { resolveUnread = resolve }))
+      vi.stubGlobal('fetch', fetchMock)
 
       await renderConfiguredHome()
 
       const header = within(screen.getByRole('banner'))
-      const fetchMock = vi.mocked(fetch)
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+      await waitFor(() => expect(unread).toHaveBeenCalledTimes(1))
       const bell = header.getByRole('link', { name: /уведомлен/i })
       expect(within(bell).queryByText('7')).not.toBeInTheDocument()
 
@@ -134,7 +160,7 @@ describe('HomePage', () => {
 
     it('omits the bell when the configured origin is invalid', async () => {
       useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
-      const fetchMock = vi.fn()
+      const { fetchMock, unread } = routedFetchMocks()
       vi.stubGlobal('fetch', fetchMock)
       vi.stubEnv('VITE_GLOCKE_URL', 'javascript:alert(1)')
       vi.resetModules()
@@ -144,7 +170,10 @@ describe('HomePage', () => {
 
       expect(within(screen.getByRole('banner')).queryByRole('link', { name: /уведомлен/i })).not.toBeInTheDocument()
       expect(document.documentElement.innerHTML).not.toContain('javascript:')
-      expect(fetchMock).not.toHaveBeenCalled()
+      // An invalid Glocke origin only suppresses the unread-count fetch and
+      // the bell itself - the avatar fetch (useAvatarUrl) targets
+      // Schlüssel's own origin independently and is unaffected.
+      expect(unread).not.toHaveBeenCalled()
     })
 
     it('uses the shared canonical Glocke origin for the header bell href', async () => {
@@ -164,13 +193,15 @@ describe('HomePage', () => {
       const logoutMock = vi.fn(() => new Promise<void>(() => {}))
       useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: logoutMock, setUser: vi.fn() })
       let unreadSignal: AbortSignal | undefined
-      vi.stubGlobal('fetch', vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
+      const { fetchMock, unread } = routedFetchMocks()
+      unread.mockImplementation((_url: RequestInfo | URL, init?: RequestInit) => {
         unreadSignal = init?.signal ?? undefined
         return new Promise<Response>(() => {})
-      }))
+      })
+      vi.stubGlobal('fetch', fetchMock)
 
       const view = await renderConfiguredHome()
-      await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1))
+      await waitFor(() => expect(unread).toHaveBeenCalledTimes(1))
       const user = userEvent.setup()
       await user.click(within(screen.getByRole('banner')).getByRole('button', { name: /Выйти/ }))
 
@@ -188,7 +219,8 @@ describe('HomePage', () => {
       setAccessTokenMock.mockImplementation((token: string | null) => {
         getAccessTokenMock.mockReturnValue(token)
       })
-      const fetchMock = vi.fn()
+      const { fetchMock, unread } = routedFetchMocks()
+      unread
         .mockResolvedValueOnce(unauthorizedResponse())
         .mockResolvedValueOnce({
           ok: true,
@@ -203,12 +235,12 @@ describe('HomePage', () => {
 
       const bell = await within(screen.getByRole('banner')).findByRole('link', { name: /уведомлен/i })
       expect(await within(bell).findByText('4')).toBeInTheDocument()
-      expect(fetchMock).toHaveBeenCalledTimes(3)
-      expect(String(fetchMock.mock.calls[0][0])).toBe('https://glocke.example.test/backend/notifications/unread-count')
-      expect(String(fetchMock.mock.calls[1][0])).toBe('/auth/refresh')
-      expect(fetchMock.mock.calls[1][1]).toMatchObject({ method: 'POST', credentials: 'include' })
-      expect(String(fetchMock.mock.calls[2][0])).toBe('https://glocke.example.test/backend/notifications/unread-count')
-      expect(new Headers(fetchMock.mock.calls[2][1]?.headers).get('Authorization')).toBe('Bearer refreshed-token-456')
+      expect(unread).toHaveBeenCalledTimes(3)
+      expect(String(unread.mock.calls[0][0])).toBe('https://glocke.example.test/backend/notifications/unread-count')
+      expect(String(unread.mock.calls[1][0])).toBe('/auth/refresh')
+      expect(unread.mock.calls[1][1]).toMatchObject({ method: 'POST', credentials: 'include' })
+      expect(String(unread.mock.calls[2][0])).toBe('https://glocke.example.test/backend/notifications/unread-count')
+      expect(new Headers(unread.mock.calls[2][1]?.headers).get('Authorization')).toBe('Bearer refreshed-token-456')
       expect(window.location.href).toBe(originalHref)
     })
   })

@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
-import { Header, Footer, Badge, ThemeToggle, useUnreadNotifications } from '@zudar107/schloss-ui'
+import { Header, Footer, Badge, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
 import { buildSchluesselLoginUrl, buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
 import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
+
+const SCHLUSSEL_URL = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -99,6 +101,11 @@ export default function HomePage() {
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
+  const avatarUrl = useAvatarUrl({
+    schluesselOrigin: SCHLUSSEL_URL,
+    userId: user?.id ?? null,
+    apiClient: notificationApiClient,
+  })
 
   // Set synchronously (before logout()'s own async work starts) by
   // onLogout below, so this effect can tell "no user because the session
@@ -131,7 +138,7 @@ export default function HomePage() {
       <Header
         logo={LOGO}
         homeHref="/"
-        user={user}
+        user={{ ...user, avatarUrl }}
         // Opens the platform-wide account settings hosted on schlussel
         // (password, delete account, ...) - schloss has no settings page
         // of its own to route to instead.
