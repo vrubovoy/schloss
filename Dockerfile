@@ -38,6 +38,7 @@ ARG VITE_KUVERT_URL=http://localhost:5174
 ARG VITE_TAFEL_URL=http://localhost:5175
 ARG VITE_ZETTEL_URL=http://localhost:5176
 ARG VITE_GLOCKE_URL=http://localhost:5177
+ARG VITE_SCHRANK_URL=http://localhost:5178
 ARG VITE_SCHLUSSEL_URL=http://localhost:4001
 RUN pnpm build
 

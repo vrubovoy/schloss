@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Archive, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
@@ -84,6 +84,17 @@ const DIENSTE: Dienst[] = [
     // StickyNote by mistake, a different glyph than Zettel actually uses.
     icon: <NotebookText size={28} strokeWidth={1.5} />,
     farbe: '#db2777',
+    status: 'aktiv',
+  },
+  {
+    id: 'schrank',
+    name: 'Schrank',
+    beschreibung: 'Хранилище файлов с папками',
+    url: (import.meta.env as Record<string, string>)['VITE_SCHRANK_URL'] ?? 'http://localhost:5177',
+    // Same wardrobe/archive glyph as Schrank's own favicon/sidebar badge.
+    icon: <Archive size={28} strokeWidth={1.5} />,
+    // Schrank's own real accent (brown), matching its HeroIllustration body.
+    farbe: '#92400e',
     status: 'aktiv',
   },
 ]
