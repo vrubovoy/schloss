@@ -355,6 +355,7 @@ describe('HomePage', () => {
     ['Kuvert', 'Бюджет по методу конвертов'],
     ['Tafel', 'Личные проекты и задачи'],
     ['Zettel', 'Быстрое хранилище заметок'],
+    ['Schrank', 'Хранилище файлов с папками'],
   ])('renders a clickable %s service card', (name, description) => {
     useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
     render(<HomePage />)
