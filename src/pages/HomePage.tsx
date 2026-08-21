@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { Archive, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Archive, Inbox, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
@@ -95,6 +95,20 @@ const DIENSTE: Dienst[] = [
     icon: <Archive size={28} strokeWidth={1.5} />,
     // Schrank's own real accent (brown), matching its HeroIllustration body.
     farbe: '#92400e',
+    status: 'aktiv',
+  },
+  {
+    id: 'herold',
+    name: 'Herold',
+    beschreibung: 'Почта из внешних IMAP/SMTP-аккаунтов',
+    url: (import.meta.env as Record<string, string>)['VITE_HEROLD_URL'] ?? 'http://localhost:5179',
+    // Same inbox glyph as Herold's own favicon/sidebar badge - Mail is
+    // already Kuvert's icon above, so a different one keeps the two
+    // cards from reading as the same service at a glance.
+    icon: <Inbox size={28} strokeWidth={1.5} />,
+    // Herold's own real accent (magenta/fuchsia), matching its
+    // HeroIllustration seal.
+    farbe: '#c026d3',
     status: 'aktiv',
   },
 ]
