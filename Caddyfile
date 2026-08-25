@@ -20,6 +20,15 @@
 		}
 	}
 
+	# handle_path (not handle, unlike /auth/* above) - Wächter's own
+	# routes aren't prefixed with /wachter (they're plain /health,
+	# /stats, ...), so the prefix must be stripped before proxying,
+	# same shape as herold-frontend's own /backend/* -> herold-backend
+	# proxy.
+	handle_path /wachter/* {
+		reverse_proxy wachter:3007
+	}
+
 	handle {
 		try_files {path} /index.html
 		file_server
