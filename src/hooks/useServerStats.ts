@@ -9,16 +9,30 @@ export interface ContainerStatus {
   health: 'healthy' | 'unhealthy' | 'starting' | null
   cpuPercent: number
   memPercent: number
+  restartable: boolean
+  critical: boolean
+}
+
+export interface HistoryPoint {
+  timestamp: string
+  value: number
 }
 
 export interface ServerStats {
+  status: 'ok' | 'degraded' | 'error'
+  sampledAt: string | null
+  stale: boolean
+  sources: {
+    host: { status: 'ok' | 'error'; sampledAt: string | null; error: string | null }
+    docker: { status: 'ok' | 'error'; sampledAt: string | null; error: string | null }
+  }
   cpuPercent: number
   memPercent: number
   diskPercent: number
   uptimeSeconds: number
-  cpuHistory: number[]
-  memHistory: number[]
-  diskHistory: number[]
+  cpuHistory: HistoryPoint[]
+  memHistory: HistoryPoint[]
+  diskHistory: HistoryPoint[]
   containers: ContainerStatus[]
 }
 
@@ -28,15 +42,15 @@ export type HistoryRange = 'hour' | 'day' | 'week'
 export interface MetricHistory {
   metric: MetricName
   range: HistoryRange
-  values: number[]
+  values: HistoryPoint[]
   sampleIntervalMs: number
 }
 
 export interface ContainerHistory {
   name: string
   range: HistoryRange
-  cpuHistory: number[]
-  memHistory: number[]
+  cpuHistory: HistoryPoint[]
+  memHistory: HistoryPoint[]
   sampleIntervalMs: number
 }
 

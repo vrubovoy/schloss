@@ -27,6 +27,9 @@ fit best; add a new section if none fits.
   this page within a fraction of a second.
 
 ## Infrastructure
+- Hardened the Schloss runtime as non-root and read-only with all capabilities
+  dropped, no-new-privileges, writable Caddy tmpfs paths, and a constrained
+  Docker build context.
 - CI (tests + lint) on every push/PR.
 - Docker Compose networking on a shared `schloss-net`.
 - Migrated from nginx to Caddy in the web image.
@@ -93,6 +96,9 @@ fit best; add a new section if none fits.
   `list-style-type`. Added `listStyleType: 'decimal'` explicitly.
 
 ## Polish
+- Wächter views now distinguish initial failures, stale retained data, and
+  degraded sources; timestamped histories render normally and restart controls
+  are shown only for explicitly restartable, non-critical containers.
 - Homepage visual polish: hero illustration, a three-tile highlights strip,
   a GitHub link in the footer, smoother card hover easing.
 - Extracted Header/Footer out of HomePage.tsx into their own components

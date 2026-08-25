@@ -39,6 +39,9 @@ its own, so its full admin UI lives here too: `/server-stats` (graphs
 over an hour/day/week), `/server-stats/:name` (one container's own
 graphs plus a restart action), and `/server-stats/docs` (its Swagger
 UI). Regular (non-admin) users never see any of it.
+Retained readings are visibly marked stale after polling failures, degraded
+sources are identified, and restart controls appear only for containers that
+Wächter explicitly marks restartable and non-critical.
 
 Schloss also mounts the shared `ThemeSync` client against Schlüssel's public `/theme`
 API. Theme choices are reconciled across platform origins by their `updatedAt`

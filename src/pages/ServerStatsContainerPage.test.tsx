@@ -56,8 +56,16 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 
 const sampleUser = { id: '1', email: 'anna@example.com', name: 'Анна', role: 'user' as const }
 const sampleAdmin = { id: '2', email: 'otto@example.com', name: 'Отто', role: 'admin' as const }
+const points = (values: number[]) => values.map((value, index) => ({ timestamp: new Date(index * 5000).toISOString(), value }))
 
 const sampleStats: ServerStats = {
+  status: 'ok',
+  sampledAt: new Date().toISOString(),
+  stale: false,
+  sources: {
+    host: { status: 'ok', sampledAt: new Date().toISOString(), error: null },
+    docker: { status: 'ok', sampledAt: new Date().toISOString(), error: null },
+  },
   cpuPercent: 10,
   memPercent: 20,
   diskPercent: 30,
@@ -66,15 +74,15 @@ const sampleStats: ServerStats = {
   memHistory: [],
   diskHistory: [],
   containers: [
-    { id: 'c1', name: 'kuvert-backend', state: 'running', status: 'Up 2 hours', health: 'healthy', cpuPercent: 12.4, memPercent: 33.9 },
+    { id: 'c1', name: 'kuvert-backend', state: 'running', status: 'Up 2 hours', health: 'healthy', cpuPercent: 12.4, memPercent: 33.9, restartable: true, critical: false },
   ],
 }
 
 const sampleHistory: ContainerHistory = {
   name: 'kuvert-backend',
   range: 'hour',
-  cpuHistory: [10, 12, 12.4],
-  memHistory: [30, 32, 33.9],
+  cpuHistory: points([10, 12, 12.4]),
+  memHistory: points([30, 32, 33.9]),
   sampleIntervalMs: 5000,
 }
 
@@ -297,5 +305,15 @@ describe('ServerStatsContainerPage', () => {
     await waitFor(() => {
       expect(navigateMock).toHaveBeenCalledWith({ to: '/', replace: true })
     })
+  })
+
+  it('does not render restart for a container without an allowlist label', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn() })
+    useServerStatsMock.mockReturnValue({
+      stats: { ...sampleStats, containers: [{ ...sampleStats.containers[0]!, restartable: false }] },
+      error: false,
+    })
+    render(<ServerStatsContainerPage />)
+    expect(screen.queryByRole('button', { name: 'Перезапустить' })).not.toBeInTheDocument()
   })
 })

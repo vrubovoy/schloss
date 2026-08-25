@@ -80,7 +80,7 @@ export default function ServerStatsPage() {
 
   const [range, setRange] = useState<HistoryRange>('hour')
 
-  const { stats } = useServerStats(isAdmin)
+  const { stats, error: statsError } = useServerStats(isAdmin)
   const { history: cpuHistory, error: cpuError } = useMetricHistory('cpu', range, isAdmin)
   const { history: memHistory, error: memError } = useMetricHistory('memory', range, isAdmin)
   const { history: diskHistory, error: diskError } = useMetricHistory('disk', range, isAdmin)
@@ -135,14 +135,27 @@ export default function ServerStatsPage() {
           {stats ? ` · аптайм ${formatUptime(stats.uptimeSeconds)}` : ''}
         </p>
 
+        {(statsError || stats?.stale || stats?.status === 'degraded') && (
+          <div role="status" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', background: 'var(--badge-warning-bg)', color: 'var(--badge-warning-text)', fontSize: '0.8125rem' }}>
+            {statsError || stats?.stale
+              ? `Данные устарели${stats?.sampledAt ? ` · последний опрос ${new Date(stats.sampledAt).toLocaleString('ru-RU')}` : ''}`
+              : 'Часть источников мониторинга недоступна'}
+          </div>
+        )}
+        {!stats && statsError && (
+          <div role="alert" style={{ marginBottom: '1rem', color: 'var(--badge-danger-text)', fontSize: '0.875rem' }}>
+            Не удалось загрузить состояние сервера
+          </div>
+        )}
+
         <div style={{ marginBottom: '1rem' }}>
           <SegmentedControl options={HISTORY_RANGE_OPTIONS} value={range} onChange={setRange} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <MetricCard title="CPU" current={stats?.cpuPercent ?? 0} history={cpuHistory?.values ?? null} error={cpuError} />
-          <MetricCard title="Память" current={stats?.memPercent ?? 0} history={memHistory?.values ?? null} error={memError} />
-          <MetricCard title="Диск" current={stats?.diskPercent ?? 0} history={diskHistory?.values ?? null} error={diskError} />
+          <MetricCard title="CPU" current={stats?.cpuPercent ?? 0} history={cpuHistory?.values.map((point) => point.value) ?? null} error={cpuError} />
+          <MetricCard title="Память" current={stats?.memPercent ?? 0} history={memHistory?.values.map((point) => point.value) ?? null} error={memError} />
+          <MetricCard title="Диск" current={stats?.diskPercent ?? 0} history={diskHistory?.values.map((point) => point.value) ?? null} error={diskError} />
         </div>
 
         <section className="card" style={{ padding: '1.5rem' }}>
