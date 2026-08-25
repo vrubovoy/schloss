@@ -4,6 +4,10 @@ Brief log of notable changes, grouped by theme — not a full commit history
 (see `git log` for that). New entries get appended under the section they
 fit best; add a new section if none fits.
 
+## CI
+- Gated GHCR publishing on successful tests, moved the image to the `vrubovoy`
+  namespace, and aligned CI with the production Node 22 build runtime.
+
 ## Auth
 - Added the shared Glocke notification bell to the authenticated home and help
   headers. Its unread count uses the existing in-memory access token, silently
