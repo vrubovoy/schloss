@@ -494,13 +494,21 @@ describe('HomePage - hero illustration, highlights strip, and GitHub footer link
 // Wächter's admin-only server-stats widget
 // ---------------------------------------------------------------------------
 describe('HomePage - Wächter server-stats widget', () => {
+  const points = (values: number[]) => values.map((value, index) => ({ timestamp: new Date(index * 5000).toISOString(), value }))
   const sampleStats = {
+    status: 'ok',
+    sampledAt: new Date().toISOString(),
+    stale: false,
+    sources: {
+      host: { status: 'ok', sampledAt: new Date().toISOString(), error: null },
+      docker: { status: 'ok', sampledAt: new Date().toISOString(), error: null },
+    },
     cpuPercent: 12.4,
     memPercent: 63.7,
     diskPercent: 28,
     uptimeSeconds: 3 * 86400 + 4 * 3600,
-    cpuHistory: [10, 11, 12.4],
-    memHistory: [60, 62, 63.7],
+    cpuHistory: points([10, 11, 12.4]),
+    memHistory: points([60, 62, 63.7]),
     containers: [
       { name: 'kuvert-backend', state: 'running', status: 'Up 2 hours', health: null },
     ],
@@ -530,12 +538,12 @@ describe('HomePage - Wächter server-stats widget', () => {
     expect(useServerStatsMock).not.toHaveBeenCalled()
   })
 
-  it('does not render the widget for an admin before the first reading arrives', () => {
+  it('shows an error state for an admin when the first reading fails', () => {
     useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
     useServerStatsMock.mockReturnValue({ stats: null, error: true })
     render(<HomePage />)
 
-    expect(screen.queryByText('Состояние сервера')).not.toBeInTheDocument()
+    expect(screen.getByText('Состояние сервера сейчас недоступно')).toBeInTheDocument()
   })
 
   it('renders CPU/memory/disk/uptime stat tiles for an admin once stats arrive', () => {
@@ -575,7 +583,7 @@ describe('HomePage - Wächter server-stats widget', () => {
   it('omits the sparklines when there is not enough history yet', () => {
     useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
     useServerStatsMock.mockReturnValue({
-      stats: { ...sampleStats, cpuHistory: [12.4], memHistory: [63.7] },
+      stats: { ...sampleStats, cpuHistory: points([12.4]), memHistory: points([63.7]) },
       error: false,
     })
     render(<HomePage />)

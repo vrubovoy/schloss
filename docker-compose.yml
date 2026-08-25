@@ -20,6 +20,18 @@ services:
         VITE_HEROLD_URL: ${HEROLD_URL:-https://herold.localhost}
         VITE_SCHLUSSEL_URL: ${SCHLUSSEL_WEB_URL:-https://auth.localhost}
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /config
+      - /data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    labels:
+      hof.wachter.critical: "true"
     networks:
       - schloss-net
 

@@ -311,8 +311,13 @@ function ServerStatsWidget() {
   // banner on the home page would be a worse experience than the widget
   // just not appearing yet. Once a first reading lands, it keeps
   // showing that last-known snapshot even if a later poll fails.
-  const { stats } = useServerStats(true)
-  if (!stats) return null
+  const { stats, error } = useServerStats(true)
+  if (!stats && !error) return null
+  if (!stats) return (
+    <div className="card" role="status" style={{ padding: '1.5rem', marginTop: '2rem', color: 'var(--text-secondary)' }}>
+      Состояние сервера сейчас недоступно
+    </div>
+  )
 
   const downContainers = stats.containers.filter(isContainerDown)
   const healthyCount = stats.containers.length - downContainers.length
@@ -331,6 +336,12 @@ function ServerStatsWidget() {
         </h2>
       </div>
 
+      {(error || stats.stale || stats.status !== 'ok') && (
+        <p role="status" style={{ margin: '0 0 1rem', fontSize: '0.8125rem', color: 'var(--badge-warning-text)' }}>
+          {stats.stale || error ? 'Показаны последние сохранённые данные' : 'Часть источников мониторинга недоступна'}
+        </p>
+      )}
+
       <Link
         to="/server-stats"
         style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
@@ -347,11 +358,11 @@ function ServerStatsWidget() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
             <div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>CPU за последние минуты</div>
-              <Sparkline values={stats.cpuHistory} height={32} />
+              <Sparkline values={stats.cpuHistory.map((point) => point.value)} height={32} />
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>Память за последние минуты</div>
-              <Sparkline values={stats.memHistory} height={32} />
+              <Sparkline values={stats.memHistory.map((point) => point.value)} height={32} />
             </div>
           </div>
         )}

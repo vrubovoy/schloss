@@ -50,7 +50,7 @@ export default function ServerStatsContainerPage() {
   // The container list already comes from the same 5s poll the home
   // widget uses (instant cpuPercent/memPercent, no history) - the
   // dedicated history endpoint below only adds the two graphs.
-  const { stats } = useServerStats(isAdmin)
+  const { stats, error: statsError } = useServerStats(isAdmin)
   const { history, error, notFound } = useContainerHistory(name, range, isAdmin)
 
   if (loading || !isAdmin || !user) {
@@ -109,7 +109,7 @@ export default function ServerStatsContainerPage() {
               </Badge>
             )}
           </div>
-          {container && (
+          {container?.restartable && !container.critical && (
             <Button
               variant="secondary"
               onClick={() => { setRestartState('confirming'); setRestartError('') }}
@@ -123,6 +123,12 @@ export default function ServerStatsContainerPage() {
         <p style={{ margin: '0 0 1rem', color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
           {container?.status ?? 'Ещё не опрошен планировщиком - обновится через несколько секунд'}
         </p>
+
+        {(statsError || stats?.stale || stats?.status === 'degraded') && (
+          <div role="status" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', background: 'var(--badge-warning-bg)', color: 'var(--badge-warning-text)', fontSize: '0.8125rem' }}>
+            {statsError || stats?.stale ? 'Показаны последние сохранённые данные' : 'Часть источников мониторинга недоступна'}
+          </div>
+        )}
 
         {restartState === 'error' && (
           <div style={{
@@ -158,8 +164,8 @@ export default function ServerStatsContainerPage() {
           </p>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
-            <MetricCard title="CPU" current={container?.cpuPercent ?? 0} history={history?.cpuHistory ?? null} error={error} />
-            <MetricCard title="Память" current={container?.memPercent ?? 0} history={history?.memHistory ?? null} error={error} />
+            <MetricCard title="CPU" current={container?.cpuPercent ?? 0} history={history?.cpuHistory.map((point) => point.value) ?? null} error={error} />
+            <MetricCard title="Память" current={container?.memPercent ?? 0} history={history?.memHistory.map((point) => point.value) ?? null} error={error} />
           </div>
         )}
       </main>

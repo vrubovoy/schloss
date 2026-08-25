@@ -48,21 +48,29 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
 
 const sampleUser = { id: '1', email: 'anna@example.com', name: 'Анна', role: 'user' as const }
 const sampleAdmin = { id: '2', email: 'otto@example.com', name: 'Отто', role: 'admin' as const }
+const points = (values: number[]) => values.map((value, index) => ({ timestamp: new Date(index * 5000).toISOString(), value }))
 
 const sampleStats: ServerStats = {
+  status: 'ok',
+  sampledAt: new Date().toISOString(),
+  stale: false,
+  sources: {
+    host: { status: 'ok', sampledAt: new Date().toISOString(), error: null },
+    docker: { status: 'ok', sampledAt: new Date().toISOString(), error: null },
+  },
   cpuPercent: 45.6,
   memPercent: 63.7,
   diskPercent: 28,
   uptimeSeconds: 3 * 86400 + 4 * 3600,
-  cpuHistory: [10, 20, 45.6],
-  memHistory: [60, 62, 63.7],
-  diskHistory: [20, 25, 28],
+  cpuHistory: points([10, 20, 45.6]),
+  memHistory: points([60, 62, 63.7]),
+  diskHistory: points([20, 25, 28]),
   containers: [],
 }
 
 function metricHistoryFor(values: Record<MetricName, number[]>) {
   return (metric: MetricName, range: HistoryRange): { history: MetricHistory | null; error: boolean } => ({
-    history: { metric, range, values: values[metric], sampleIntervalMs: 5000 },
+    history: { metric, range, values: points(values[metric]), sampleIntervalMs: 5000 },
     error: false,
   })
 }
@@ -210,6 +218,13 @@ describe('ServerStatsPage', () => {
     render(<ServerStatsPage />)
 
     expect(screen.getByText('Пока нет данных о контейнерах')).toBeInTheDocument()
+  })
+
+  it('labels retained stats as stale after a polling failure', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn() })
+    useServerStatsMock.mockReturnValue({ stats: { ...sampleStats, stale: true, status: 'degraded' }, error: true })
+    render(<ServerStatsPage />)
+    expect(screen.getByText(/Данные устарели/)).toBeInTheDocument()
   })
 
   it('shows a per-metric error message and does not crash when a metric-history fetch fails', () => {

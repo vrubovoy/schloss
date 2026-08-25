@@ -47,7 +47,11 @@ RUN pnpm build
 
 FROM caddy:2-alpine AS runner
 
-COPY --from=builder /app/dist /srv
-COPY Caddyfile /etc/caddy/Caddyfile
+RUN setcap -r /usr/bin/caddy \
+    && addgroup -S -g 10001 caddy-app \
+    && adduser -S -D -H -u 10001 -G caddy-app caddy-app
+COPY --from=builder --chown=caddy-app:caddy-app /app/dist /srv
+COPY --chown=caddy-app:caddy-app Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 80
+USER caddy-app
