@@ -1,12 +1,16 @@
 import { useEffect, useRef } from 'react'
+import { Link } from '@tanstack/react-router'
 import { Archive, Eye, Inbox, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
 import { Header, Footer, Badge, StatTile, Sparkline, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
 import { useServerStats } from '../hooks/useServerStats'
+import type { ContainerStatus } from '../hooks/useServerStats'
 import { buildSchluesselLoginUrl, buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
 import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
+import { formatUptime } from '../lib/format'
+import { pluralizeRu } from '../lib/pluralize'
 
 const SCHLUSSEL_URL = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
 
@@ -291,17 +295,15 @@ function DienstKarte({ dienst }: { dienst: Dienst }) {
   )
 }
 
-function formatUptime(totalSeconds: number): string {
-  const days = Math.floor(totalSeconds / 86400)
-  const hours = Math.floor((totalSeconds % 86400) / 3600)
-  if (days > 0) return `${days}д ${hours}ч`
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  if (hours > 0) return `${hours}ч ${minutes}м`
-  return `${minutes}м`
+function isContainerDown(c: ContainerStatus): boolean {
+  return c.state !== 'running' || c.health === 'unhealthy'
 }
 
 // Neutral styling throughout - plain .card/var(--text-*)/var(--border),
 // no accent token of its own, matching Wächter's own "no color" framing.
+// Every clickable area below leads to /server-stats (or a specific
+// container's own page) for the full graphs - this widget itself only
+// ever shows the live instant numbers plus a short recent trend.
 function ServerStatsWidget() {
   // Fails silently rather than showing an error card while no reading
   // has ever succeeded yet - this is a nice-to-have ops widget, not core
@@ -312,7 +314,13 @@ function ServerStatsWidget() {
   const { stats } = useServerStats(true)
   if (!stats) return null
 
-  const downContainers = stats.containers.filter((c) => c.state !== 'running' || c.health === 'unhealthy')
+  const downContainers = stats.containers.filter(isContainerDown)
+  const healthyCount = stats.containers.length - downContainers.length
+  const containerSummary = stats.containers.length === 0
+    ? 'Нет данных о контейнерах'
+    : downContainers.length === 0
+      ? `Все ${stats.containers.length} ${pluralizeRu(stats.containers.length, 'контейнер', 'контейнера', 'контейнеров')} активны`
+      : `${healthyCount} из ${stats.containers.length} ${pluralizeRu(stats.containers.length, 'контейнер', 'контейнера', 'контейнеров')} активны`
 
   return (
     <div className="card" style={{ padding: '1.5rem', marginTop: '2rem' }}>
@@ -323,34 +331,47 @@ function ServerStatsWidget() {
         </h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
-        <StatTile label="CPU" value={`${Math.round(stats.cpuPercent)}%`} />
-        <StatTile label="Память" value={`${Math.round(stats.memPercent)}%`} />
-        <StatTile label="Диск" value={`${Math.round(stats.diskPercent)}%`} />
-        <StatTile label="Аптайм" value={formatUptime(stats.uptimeSeconds)} />
-      </div>
-
-      {(stats.cpuHistory.length > 1 || stats.memHistory.length > 1) && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>CPU за последний час</div>
-            <Sparkline values={stats.cpuHistory} height={32} />
-          </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>Память за последний час</div>
-            <Sparkline values={stats.memHistory} height={32} />
-          </div>
+      <Link
+        to="/server-stats"
+        style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+        aria-label="Подробная статистика сервера"
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <StatTile label="CPU" value={`${Math.round(stats.cpuPercent)}%`} />
+          <StatTile label="Память" value={`${Math.round(stats.memPercent)}%`} />
+          <StatTile label="Диск" value={`${Math.round(stats.diskPercent)}%`} />
+          <StatTile label="Аптайм" value={formatUptime(stats.uptimeSeconds)} />
         </div>
-      )}
 
-      {downContainers.length === 0 ? (
-        <div style={{ fontSize: '0.8125rem', color: 'var(--success)' }}>Все контейнеры в порядке</div>
-      ) : (
+        {(stats.cpuHistory.length > 1 || stats.memHistory.length > 1) && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>CPU за последние минуты</div>
+              <Sparkline values={stats.cpuHistory} height={32} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>Память за последние минуты</div>
+              <Sparkline values={stats.memHistory} height={32} />
+            </div>
+          </div>
+        )}
+      </Link>
+
+      <Link
+        to="/server-stats"
+        style={{ display: 'block', fontSize: '0.8125rem', color: 'var(--text-secondary)', textDecoration: 'none', marginBottom: downContainers.length > 0 ? '0.625rem' : 0 }}
+      >
+        {containerSummary} →
+      </Link>
+
+      {downContainers.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
           {downContainers.map((c) => (
-            <Badge key={c.name} variant="danger">
-              {c.name}: {c.health === 'unhealthy' ? 'unhealthy' : c.state}
-            </Badge>
+            <Link key={c.name} to="/server-stats/$name" params={{ name: c.name }} style={{ textDecoration: 'none' }}>
+              <Badge variant="danger">
+                {c.name}: {c.health === 'unhealthy' ? 'unhealthy' : c.state}
+              </Badge>
+            </Link>
           ))}
         </div>
       )}

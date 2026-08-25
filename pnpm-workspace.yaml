@@ -2,4 +2,6 @@ packages:
   - "schloss-ui"
 
 allowBuilds:
+  # Anonymous-telemetry postinstall ping, no functional purpose - denied.
+  '@scarf/scarf': false
   esbuild: true
