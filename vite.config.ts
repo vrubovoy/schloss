@@ -22,6 +22,16 @@ export default defineConfig(({ mode }) => {
             })
           },
         },
+        // Wächter's own routes aren't prefixed with /wachter (they're
+        // plain /health, /stats, ...) - the prefix exists only as this
+        // frontend's own namespacing for "which backend does this
+        // request go to", so it's stripped before forwarding, same
+        // reasoning as the production Caddyfile's handle_path block.
+        '/wachter': {
+          target: env.WACHTER_API_URL || 'http://localhost:3007',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/wachter/, ''),
+        },
       },
     },
     define: {

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { Archive, Inbox, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
-import { Header, Footer, Badge, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
+import { Archive, Eye, Inbox, Mail, ListChecks, NotebookText, Plus, Server, ShieldCheck, Code2 } from 'lucide-react'
+import { Header, Footer, Badge, StatTile, Sparkline, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { HeroIllustration } from '../components/HeroIllustration'
 import { useAuth } from '../hooks/useAuth'
+import { useServerStats } from '../hooks/useServerStats'
 import { buildSchluesselLoginUrl, buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
 import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
@@ -220,6 +221,13 @@ export default function HomePage() {
           {DIENSTE.map((d) => <DienstKarte key={d.id} dienst={d} />)}
           <PlatzhalterKarte />
         </div>
+
+        {/* Wächter's own widget - admin-only, no launcher card, no accent
+            color of its own (see wachter's own README for why: it's an
+            auxiliary/infrastructure service, not a content app). Placed
+            after the launcher grid, an "ops corner" rather than
+            competing with the page's actual purpose for everyone else. */}
+        {user.role === 'admin' && <ServerStatsWidget />}
       </main>
 
       <Footer serviceName="Schloss" description="Домашняя страница и точка входа" version={__APP_VERSION__} helpHref="/help" />
@@ -280,6 +288,73 @@ function DienstKarte({ dienst }: { dienst: Dienst }) {
         </p>
       </div>
     </a>
+  )
+}
+
+function formatUptime(totalSeconds: number): string {
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  if (days > 0) return `${days}д ${hours}ч`
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  if (hours > 0) return `${hours}ч ${minutes}м`
+  return `${minutes}м`
+}
+
+// Neutral styling throughout - plain .card/var(--text-*)/var(--border),
+// no accent token of its own, matching Wächter's own "no color" framing.
+function ServerStatsWidget() {
+  // Fails silently rather than showing an error card while no reading
+  // has ever succeeded yet - this is a nice-to-have ops widget, not core
+  // page functionality, and a half-broken "could not load server stats"
+  // banner on the home page would be a worse experience than the widget
+  // just not appearing yet. Once a first reading lands, it keeps
+  // showing that last-known snapshot even if a later poll fails.
+  const { stats } = useServerStats(true)
+  if (!stats) return null
+
+  const downContainers = stats.containers.filter((c) => c.state !== 'running' || c.health === 'unhealthy')
+
+  return (
+    <div className="card" style={{ padding: '1.5rem', marginTop: '2rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        <Eye size={18} color="var(--text-secondary)" strokeWidth={1.75} />
+        <h2 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          Состояние сервера
+        </h2>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+        <StatTile label="CPU" value={`${Math.round(stats.cpuPercent)}%`} />
+        <StatTile label="Память" value={`${Math.round(stats.memPercent)}%`} />
+        <StatTile label="Диск" value={`${Math.round(stats.diskPercent)}%`} />
+        <StatTile label="Аптайм" value={formatUptime(stats.uptimeSeconds)} />
+      </div>
+
+      {(stats.cpuHistory.length > 1 || stats.memHistory.length > 1) && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+          <div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>CPU за последний час</div>
+            <Sparkline values={stats.cpuHistory} height={32} />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.375rem' }}>Память за последний час</div>
+            <Sparkline values={stats.memHistory} height={32} />
+          </div>
+        </div>
+      )}
+
+      {downContainers.length === 0 ? (
+        <div style={{ fontSize: '0.8125rem', color: 'var(--success)' }}>Все контейнеры в порядке</div>
+      ) : (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+          {downContainers.map((c) => (
+            <Badge key={c.name} variant="danger">
+              {c.name}: {c.health === 'unhealthy' ? 'unhealthy' : c.state}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 

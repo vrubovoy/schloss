@@ -6,10 +6,11 @@ import { buildSchluesselLoginUrl } from '../lib/authRedirect'
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
-const { useAuthMock, getAccessTokenMock, setAccessTokenMock } = vi.hoisted(() => ({
+const { useAuthMock, getAccessTokenMock, setAccessTokenMock, useServerStatsMock } = vi.hoisted(() => ({
   useAuthMock: vi.fn(),
   getAccessTokenMock: vi.fn(),
   setAccessTokenMock: vi.fn(),
+  useServerStatsMock: vi.fn(),
 }))
 
 vi.mock('../hooks/useAuth', () => ({
@@ -21,7 +22,15 @@ vi.mock('../lib/api', () => ({
   setAccessToken: setAccessTokenMock,
 }))
 
+// The hook's own fetch/polling/visibility behavior is covered in
+// useServerStats.test.ts - HomePage only needs to be tested against what
+// the hook returns, not how it gets there.
+vi.mock('../hooks/useServerStats', () => ({
+  useServerStats: useServerStatsMock,
+}))
+
 const sampleUser = { id: '1', email: 'anna@example.com', name: 'Анна', role: 'user' as const }
+const sampleAdmin = { id: '2', email: 'otto@example.com', name: 'Отто', role: 'admin' as const }
 
 let originalLocation: Location
 
@@ -30,6 +39,7 @@ describe('HomePage', () => {
     useAuthMock.mockReset()
     getAccessTokenMock.mockReset().mockReturnValue('access-token-123')
     setAccessTokenMock.mockReset()
+    useServerStatsMock.mockReset().mockReturnValue({ stats: null, error: false })
     originalLocation = window.location
     // @ts-expect-error -- intentionally deleting to stub location for the test
     delete window.location
@@ -392,6 +402,7 @@ describe('HomePage', () => {
 describe('HomePage - hero illustration, highlights strip, and GitHub footer link', () => {
   beforeEach(() => {
     useAuthMock.mockReset()
+    useServerStatsMock.mockReset().mockReturnValue({ stats: null, error: false })
     originalLocation = window.location
     // @ts-expect-error -- intentionally deleting to stub location for the test
     delete window.location
@@ -453,5 +464,129 @@ describe('HomePage - hero illustration, highlights strip, and GitHub footer link
     expect(screen.queryByText('Открытый код')).not.toBeInTheDocument()
     expect(screen.queryByText('Твои данные — твои')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /github/i })).not.toBeInTheDocument()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Wächter's admin-only server-stats widget
+// ---------------------------------------------------------------------------
+describe('HomePage - Wächter server-stats widget', () => {
+  const sampleStats = {
+    cpuPercent: 12.4,
+    memPercent: 63.7,
+    diskPercent: 28,
+    uptimeSeconds: 3 * 86400 + 4 * 3600,
+    cpuHistory: [10, 11, 12.4],
+    memHistory: [60, 62, 63.7],
+    containers: [
+      { name: 'kuvert-backend', state: 'running', status: 'Up 2 hours', health: null },
+    ],
+  }
+
+  beforeEach(() => {
+    useAuthMock.mockReset()
+    useServerStatsMock.mockReset().mockReturnValue({ stats: null, error: false })
+    originalLocation = window.location
+    // @ts-expect-error -- intentionally deleting to stub location for the test
+    delete window.location
+    // @ts-expect-error -- plain writable stand-in object
+    window.location = { ...originalLocation, href: originalLocation.href }
+  })
+
+  afterEach(() => {
+    cleanup()
+    // @ts-expect-error -- restore the real Location object
+    window.location = originalLocation
+  })
+
+  it('does not call useServerStats or render the widget for a non-admin user', () => {
+    useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    render(<HomePage />)
+
+    expect(screen.queryByText('Состояние сервера')).not.toBeInTheDocument()
+    expect(useServerStatsMock).not.toHaveBeenCalled()
+  })
+
+  it('does not render the widget for an admin before the first reading arrives', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    useServerStatsMock.mockReturnValue({ stats: null, error: true })
+    render(<HomePage />)
+
+    expect(screen.queryByText('Состояние сервера')).not.toBeInTheDocument()
+  })
+
+  it('renders CPU/memory/disk/uptime stat tiles for an admin once stats arrive', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    useServerStatsMock.mockReturnValue({ stats: sampleStats, error: false })
+    render(<HomePage />)
+
+    expect(screen.getByText('Состояние сервера')).toBeInTheDocument()
+    expect(screen.getByText('CPU')).toBeInTheDocument()
+    expect(screen.getByText('12%')).toBeInTheDocument()
+    expect(screen.getByText('Память')).toBeInTheDocument()
+    expect(screen.getByText('64%')).toBeInTheDocument()
+    expect(screen.getByText('Диск')).toBeInTheDocument()
+    expect(screen.getByText('28%')).toBeInTheDocument()
+    expect(screen.getByText('Аптайм')).toBeInTheDocument()
+    expect(screen.getByText('3д 4ч')).toBeInTheDocument()
+  })
+
+  it('requests the hook with enabled=true for an admin', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    useServerStatsMock.mockReturnValue({ stats: sampleStats, error: false })
+    render(<HomePage />)
+
+    expect(useServerStatsMock).toHaveBeenCalledWith(true)
+  })
+
+  it('renders CPU and memory sparklines when history has more than one sample', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    useServerStatsMock.mockReturnValue({ stats: sampleStats, error: false })
+    render(<HomePage />)
+
+    expect(screen.getByText('CPU за последний час')).toBeInTheDocument()
+    expect(screen.getByText('Память за последний час')).toBeInTheDocument()
+    expect(screen.getAllByRole('img', { hidden: true }).filter((el) => el.getAttribute('aria-hidden') === 'true')).toHaveLength(2)
+  })
+
+  it('omits the sparklines when there is not enough history yet', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    useServerStatsMock.mockReturnValue({
+      stats: { ...sampleStats, cpuHistory: [12.4], memHistory: [63.7] },
+      error: false,
+    })
+    render(<HomePage />)
+
+    expect(screen.queryByText('CPU за последний час')).not.toBeInTheDocument()
+    expect(screen.queryByText('Память за последний час')).not.toBeInTheDocument()
+  })
+
+  it('shows a reassuring single line when every container is healthy', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    useServerStatsMock.mockReturnValue({ stats: sampleStats, error: false })
+    render(<HomePage />)
+
+    expect(screen.getByText('Все контейнеры в порядке')).toBeInTheDocument()
+  })
+
+  it('lists only the down/unhealthy containers as badges, not the healthy ones', () => {
+    useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    useServerStatsMock.mockReturnValue({
+      stats: {
+        ...sampleStats,
+        containers: [
+          { name: 'kuvert-backend', state: 'running', status: 'Up 2 hours', health: null },
+          { name: 'tafel-backend', state: 'exited', status: 'Exited (1)', health: null },
+          { name: 'zettel-backend', state: 'running', status: 'Up 1 hour', health: 'unhealthy' },
+        ],
+      },
+      error: false,
+    })
+    render(<HomePage />)
+
+    expect(screen.queryByText('Все контейнеры в порядке')).not.toBeInTheDocument()
+    expect(screen.getByText(/tafel-backend: exited/)).toBeInTheDocument()
+    expect(screen.getByText(/zettel-backend: unhealthy/)).toBeInTheDocument()
+    expect(screen.queryByText(/kuvert-backend/)).not.toBeInTheDocument()
   })
 })
