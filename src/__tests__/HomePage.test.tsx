@@ -29,6 +29,29 @@ vi.mock('../hooks/useServerStats', () => ({
   useServerStats: useServerStatsMock,
 }))
 
+// The widget's real <Link> requires a mounted RouterProvider (it reads
+// router context for active-match state) - render() here mounts pages
+// standalone, same as AuthCallbackPage.test.tsx mocking useNavigate for
+// the same reason. Substituting a plain <a> keeps href/params assertions
+// meaningful without pulling in the whole router.
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
+  return {
+    ...actual,
+    Link: ({ to, params, children, ...rest }: {
+      to: string
+      params?: Record<string, string>
+      children?: React.ReactNode
+      [key: string]: unknown
+    }) => {
+      const href = params
+        ? Object.entries(params).reduce((path, [key, value]) => path.replace(`$${key}`, value), to)
+        : to
+      return <a href={href} {...rest}>{children}</a>
+    },
+  }
+})
+
 const sampleUser = { id: '1', email: 'anna@example.com', name: 'Анна', role: 'user' as const }
 const sampleAdmin = { id: '2', email: 'otto@example.com', name: 'Отто', role: 'admin' as const }
 
@@ -544,8 +567,8 @@ describe('HomePage - Wächter server-stats widget', () => {
     useServerStatsMock.mockReturnValue({ stats: sampleStats, error: false })
     render(<HomePage />)
 
-    expect(screen.getByText('CPU за последний час')).toBeInTheDocument()
-    expect(screen.getByText('Память за последний час')).toBeInTheDocument()
+    expect(screen.getByText('CPU за последние минуты')).toBeInTheDocument()
+    expect(screen.getByText('Память за последние минуты')).toBeInTheDocument()
     expect(screen.getAllByRole('img', { hidden: true }).filter((el) => el.getAttribute('aria-hidden') === 'true')).toHaveLength(2)
   })
 
@@ -557,19 +580,30 @@ describe('HomePage - Wächter server-stats widget', () => {
     })
     render(<HomePage />)
 
-    expect(screen.queryByText('CPU за последний час')).not.toBeInTheDocument()
-    expect(screen.queryByText('Память за последний час')).not.toBeInTheDocument()
+    expect(screen.queryByText('CPU за последние минуты')).not.toBeInTheDocument()
+    expect(screen.queryByText('Память за последние минуты')).not.toBeInTheDocument()
   })
 
-  it('shows a reassuring single line when every container is healthy', () => {
+  it('shows a container count line, linked to the detailed stats page, when every container is healthy', () => {
     useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
-    useServerStatsMock.mockReturnValue({ stats: sampleStats, error: false })
+    useServerStatsMock.mockReturnValue({
+      stats: {
+        ...sampleStats,
+        containers: [
+          { name: 'kuvert-backend', state: 'running', status: 'Up 2 hours', health: null },
+          { name: 'tafel-backend', state: 'running', status: 'Up 2 hours', health: 'healthy' },
+        ],
+      },
+      error: false,
+    })
     render(<HomePage />)
 
-    expect(screen.getByText('Все контейнеры в порядке')).toBeInTheDocument()
+    const summary = screen.getByText(/Все 2 контейнера активны/)
+    expect(summary).toBeInTheDocument()
+    expect(summary.closest('a')).toHaveAttribute('href', '/server-stats')
   })
 
-  it('lists only the down/unhealthy containers as badges, not the healthy ones', () => {
+  it('lists only the down/unhealthy containers as badges (each linking to its own page), not the healthy ones', () => {
     useAuthMock.mockReturnValue({ user: sampleAdmin, loading: false, logout: vi.fn(), setUser: vi.fn() })
     useServerStatsMock.mockReturnValue({
       stats: {
@@ -584,9 +618,13 @@ describe('HomePage - Wächter server-stats widget', () => {
     })
     render(<HomePage />)
 
-    expect(screen.queryByText('Все контейнеры в порядке')).not.toBeInTheDocument()
-    expect(screen.getByText(/tafel-backend: exited/)).toBeInTheDocument()
-    expect(screen.getByText(/zettel-backend: unhealthy/)).toBeInTheDocument()
-    expect(screen.queryByText(/kuvert-backend/)).not.toBeInTheDocument()
+    expect(screen.getByText(/1 из 3 контейнера активны/)).toBeInTheDocument()
+    const exitedBadge = screen.getByText(/tafel-backend: exited/)
+    expect(exitedBadge).toBeInTheDocument()
+    expect(exitedBadge.closest('a')).toHaveAttribute('href', '/server-stats/tafel-backend')
+    const unhealthyBadge = screen.getByText(/zettel-backend: unhealthy/)
+    expect(unhealthyBadge).toBeInTheDocument()
+    expect(unhealthyBadge.closest('a')).toHaveAttribute('href', '/server-stats/zettel-backend')
+    expect(screen.queryByText(/^kuvert-backend/)).not.toBeInTheDocument()
   })
 })

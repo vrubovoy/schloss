@@ -1,5 +1,5 @@
 import { renderHook, cleanup, act } from '@testing-library/react'
-import { useServerStats } from '../hooks/useServerStats'
+import { useServerStats, useMetricHistory, useContainerHistory } from '../hooks/useServerStats'
 
 const { getAccessTokenMock } = vi.hoisted(() => ({ getAccessTokenMock: vi.fn() }))
 vi.mock('../lib/api', () => ({ getAccessToken: getAccessTokenMock, setAccessToken: vi.fn() }))
@@ -138,7 +138,7 @@ describe('useServerStats', () => {
     await flush(0)
     expect(fetchMock).toHaveBeenCalledTimes(1)
 
-    await flush(59_000)
+    await flush(4_000)
     expect(fetchMock).toHaveBeenCalledTimes(1)
 
     await flush(1_000)
@@ -194,5 +194,201 @@ describe('useServerStats', () => {
     await flush(0)
 
     expect(result.current.stats).toBeNull()
+  })
+})
+
+// The shared usePolledResource polling/visibility/online-gating behavior is
+// already fully exercised above via useServerStats - these two hooks just
+// need their own URL construction and response-shape handling verified.
+describe('useMetricHistory', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    getAccessTokenMock.mockReset().mockReturnValue('access-token-123')
+    setVisibility('visible')
+    setOnline(true)
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  const sampleCpuHistory = { metric: 'cpu' as const, range: 'hour' as const, values: [10, 12, 15], sampleIntervalMs: 5000 }
+
+  it('fetches /wachter/history/<metric> with a bearer token and the range query param', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse(sampleCpuHistory))
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useMetricHistory('cpu', 'hour', true))
+    await flush(0)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0] as [RequestInfo | URL, RequestInit]
+    expect(String(url)).toBe('/wachter/history/cpu?range=hour')
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer access-token-123')
+  })
+
+  it('fetches a different metric under its own URL', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse({ metric: 'disk', range: 'hour', values: [1], sampleIntervalMs: 5000 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useMetricHistory('disk', 'hour', true))
+    await flush(0)
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/wachter/history/disk?range=hour')
+  })
+
+  it('fetches under a different range query param for a different range', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse({ ...sampleCpuHistory, range: 'week' }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useMetricHistory('cpu', 'week', true))
+    await flush(0)
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/wachter/history/cpu?range=week')
+  })
+
+  it('exposes the parsed history after a successful fetch', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse(sampleCpuHistory)))
+
+    const { result } = renderHook(() => useMetricHistory('cpu', 'hour', true))
+    await flush(0)
+
+    expect(result.current.history).toEqual(sampleCpuHistory)
+    expect(result.current.error).toBe(false)
+  })
+
+  it('does not fetch while disabled', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useMetricHistory('cpu', 'hour', false))
+    await flush(0)
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('re-fetches under the new URL when range changes on a re-render', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse(sampleCpuHistory))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { rerender } = renderHook(({ range }: { range: 'hour' | 'day' | 'week' }) => useMetricHistory('cpu', range, true), {
+      initialProps: { range: 'hour' },
+    })
+    await flush(0)
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/wachter/history/cpu?range=hour')
+
+    rerender({ range: 'day' })
+    await flush(0)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(String(fetchMock.mock.calls[1][0])).toBe('/wachter/history/cpu?range=day')
+  })
+})
+
+describe('useContainerHistory', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    getAccessTokenMock.mockReset().mockReturnValue('access-token-123')
+    setVisibility('visible')
+    setOnline(true)
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  const sampleContainerHistory = {
+    name: 'kuvert-backend',
+    range: 'hour' as const,
+    cpuHistory: [1, 2, 3],
+    memHistory: [4, 5, 6],
+    sampleIntervalMs: 5000,
+  }
+
+  it('fetches /wachter/containers/<name>/history with a bearer token and the range query param', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse(sampleContainerHistory))
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useContainerHistory('kuvert-backend', 'hour', true))
+    await flush(0)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0] as [RequestInfo | URL, RequestInit]
+    expect(String(url)).toBe('/wachter/containers/kuvert-backend/history?range=hour')
+    expect(new Headers(init.headers).get('Authorization')).toBe('Bearer access-token-123')
+  })
+
+  it('URL-encodes a container name containing special characters', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse(sampleContainerHistory))
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useContainerHistory('my container/1', 'hour', true))
+    await flush(0)
+
+    const [url] = fetchMock.mock.calls[0] as [RequestInfo | URL]
+    expect(String(url)).toBe('/wachter/containers/my%20container%2F1/history?range=hour')
+  })
+
+  it('fetches under a different range query param for a different range', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse({ ...sampleContainerHistory, range: 'week' }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useContainerHistory('kuvert-backend', 'week', true))
+    await flush(0)
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/wachter/containers/kuvert-backend/history?range=week')
+  })
+
+  it('exposes the parsed history after a successful fetch', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okResponse(sampleContainerHistory)))
+
+    const { result } = renderHook(() => useContainerHistory('kuvert-backend', 'hour', true))
+    await flush(0)
+
+    expect(result.current.history).toEqual(sampleContainerHistory)
+    expect(result.current.error).toBe(false)
+    expect(result.current.notFound).toBe(false)
+  })
+
+  it('sets notFound (not error) and leaves history null on a 404 response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, json: () => Promise.resolve({}) } as Response))
+
+    const { result } = renderHook(() => useContainerHistory('missing-container', 'hour', true))
+    await flush(0)
+
+    expect(result.current.notFound).toBe(true)
+    expect(result.current.error).toBe(false)
+    expect(result.current.history).toBeNull()
+  })
+
+  it('does not fetch while disabled', async () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderHook(() => useContainerHistory('kuvert-backend', 'hour', false))
+    await flush(0)
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('re-fetches under the new URL when range changes on a re-render', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(okResponse(sampleContainerHistory))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { rerender } = renderHook(({ range }: { range: 'hour' | 'day' | 'week' }) => useContainerHistory('kuvert-backend', range, true), {
+      initialProps: { range: 'hour' },
+    })
+    await flush(0)
+    expect(String(fetchMock.mock.calls[0][0])).toBe('/wachter/containers/kuvert-backend/history?range=hour')
+
+    rerender({ range: 'day' })
+    await flush(0)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(String(fetchMock.mock.calls[1][0])).toBe('/wachter/containers/kuvert-backend/history?range=day')
   })
 })
