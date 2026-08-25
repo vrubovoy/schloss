@@ -31,6 +31,15 @@ Glocke's `/notifications` page and is also available on Schloss's help page whil
 The configured launcher cards currently link to Kuvert, Tafel, Zettel, and Glocke, followed by a
 non-clickable placeholder for future services.
 
+For an admin, the home page also embeds a live server-stats widget -
+CPU/memory/disk, uptime, and container status - reported by
+[`wachter`](https://github.com/vrubovoy/wachter), reached same-origin at
+`/wachter/*` via this repo's own Caddyfile. Wächter has no web app of
+its own, so its full admin UI lives here too: `/server-stats` (graphs
+over an hour/day/week), `/server-stats/:name` (one container's own
+graphs plus a restart action), and `/server-stats/docs` (its Swagger
+UI). Regular (non-admin) users never see any of it.
+
 Schloss also mounts the shared `ThemeSync` client against Schlüssel's public `/theme`
 API. Theme choices are reconciled across platform origins by their `updatedAt`
 timestamps; the server-returned winner is adopted after both reads and writes, including
