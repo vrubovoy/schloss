@@ -18,6 +18,7 @@ jq -n \
   --argjson zettelEnabled "$([ -n "${ZETTEL_URL:-}" ] && echo true || echo false)" \
   --argjson schrankEnabled "$([ -n "${SCHRANK_URL:-}" ] && echo true || echo false)" \
   --argjson heroldEnabled "$([ -n "${HEROLD_URL:-}" ] && echo true || echo false)" \
+  --argjson glockeEnabled "$([ -n "${GLOCKE_URL:-}" ] && echo true || echo false)" \
   '{
     schemaVersion: 1,
     kuvertUrl: $kuvertUrl,
@@ -32,7 +33,8 @@ jq -n \
       tafel: $tafelEnabled,
       zettel: $zettelEnabled,
       schrank: $schrankEnabled,
-      herold: $heroldEnabled
+      herold: $heroldEnabled,
+      glocke: $glockeEnabled
     }
   }' >> "$tmp"
 printf ';\n' >> "$tmp"

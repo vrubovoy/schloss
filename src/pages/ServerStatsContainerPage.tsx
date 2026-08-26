@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useServerStats, useContainerHistory, restartContainer } from '../hooks/useServerStats'
 import type { HistoryRange } from '../hooks/useServerStats'
 import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
-import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
+import { GLOCKE_ENABLED, GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
 import { HISTORY_RANGE_OPTIONS } from '../lib/historyRange'
 import { runtimeConfig } from '../lib/runtimeConfig'
@@ -86,7 +86,7 @@ export default function ServerStatsContainerPage() {
         user={{ ...user, avatarUrl }}
         onSettings={() => { window.location.href = buildSchluesselAccountUrl(window.location.pathname) }}
         onLogout={() => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }}
-        notifications={{ href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }}
+        notifications={GLOCKE_ENABLED ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient } : undefined}
         rightSlot={<ThemeToggle />}
       />
 

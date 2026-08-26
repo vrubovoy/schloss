@@ -1,13 +1,14 @@
-// Only the five services with a DIENSTE launcher card on the home page -
-// schlussel is mandatory core (no card to hide), and glocke deliberately
-// has no card at all (reached via the header bell instead), so neither
-// belongs in this topology map.
+// The five DIENSTE-card services, plus glocke - which has no card of its
+// own (reached via the header bell instead, see src/lib/glocke.ts), so its
+// flag gates the bell's visibility, not a launcher card. schlussel is
+// mandatory core and has neither.
 export interface OptionalServices {
   kuvert: boolean
   tafel: boolean
   zettel: boolean
   schrank: boolean
   herold: boolean
+  glocke: boolean
 }
 
 export interface RuntimeConfig {
@@ -31,7 +32,7 @@ const DEFAULTS: RuntimeConfig = {
   schrankUrl: 'http://localhost:5178',
   heroldUrl: 'http://localhost:5179',
   schlusselUrl: 'http://localhost:4001',
-  services: { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true },
+  services: { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true, glocke: true },
 }
 
 type UrlField = Exclude<keyof RuntimeConfig, 'schemaVersion' | 'services'>
@@ -87,6 +88,7 @@ function parseServices(value: unknown): OptionalServices {
     zettel: flag('zettel'),
     schrank: flag('schrank'),
     herold: flag('herold'),
+    glocke: flag('glocke'),
   }
 }
 

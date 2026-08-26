@@ -1,7 +1,7 @@
 import { Header, Footer, ThemeToggle, useAvatarUrl, useUnreadNotifications } from '@zudar107/schloss-ui'
 import { useAuth } from '../hooks/useAuth'
 import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
-import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
+import { GLOCKE_ENABLED, GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
 import { runtimeConfig } from '../lib/runtimeConfig'
 
@@ -63,7 +63,7 @@ export default function HelpPage() {
         onLogout={user
           ? () => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }
           : undefined}
-        notifications={user
+        notifications={user && GLOCKE_ENABLED
           ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }
           : undefined}
         rightSlot={<ThemeToggle />}

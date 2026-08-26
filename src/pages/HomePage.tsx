@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useServerStats } from '../hooks/useServerStats'
 import type { ContainerStatus } from '../hooks/useServerStats'
 import { buildSchluesselLoginUrl, buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
-import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
+import { GLOCKE_ENABLED, GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
 import { formatUptime } from '../lib/format'
 import { pluralizeRu } from '../lib/pluralize'
@@ -177,7 +177,7 @@ export default function HomePage() {
           loggingOutRef.current = true
           void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() })
         }}
-        notifications={{ href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }}
+        notifications={GLOCKE_ENABLED ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient } : undefined}
         rightSlot={<ThemeToggle />}
       />
 
