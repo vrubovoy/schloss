@@ -393,6 +393,40 @@ describe('HomePage', () => {
     expect(screen.getByText('Скоро появятся новые сервисы')).toBeInTheDocument()
   })
 
+  it('hides a disabled service\'s card while leaving the others untouched', async () => {
+    useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    window.__HOF_CONFIG__.services = { kuvert: true, tafel: false, zettel: true, schrank: true, herold: true }
+    vi.resetModules()
+    const { default: TopologyHomePage } = await import('../pages/HomePage')
+
+    render(<TopologyHomePage />)
+
+    expect(screen.getByRole('link', { name: /Kuvert/ })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Tafel/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Zettel/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Schrank/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Herold/ })).toBeInTheDocument()
+
+    window.__HOF_CONFIG__.services = { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true }
+  })
+
+  it('renders every card when `services` is absent from the runtime config (missing means enabled)', async () => {
+    useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
+    delete window.__HOF_CONFIG__.services
+    vi.resetModules()
+    const { default: NoTopologyHomePage } = await import('../pages/HomePage')
+
+    render(<NoTopologyHomePage />)
+
+    expect(screen.getByRole('link', { name: /Kuvert/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Tafel/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Zettel/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Schrank/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Herold/ })).toBeInTheDocument()
+
+    window.__HOF_CONFIG__.services = { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true }
+  })
+
   it('does not redirect to the login URL when not loading and user is set', async () => {
     useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
     const loginUrl = await buildSchluesselLoginUrl('/')

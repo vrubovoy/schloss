@@ -12,6 +12,7 @@ import { notificationApiClient } from '../lib/notificationApiClient'
 import { formatUptime } from '../lib/format'
 import { pluralizeRu } from '../lib/pluralize'
 import { runtimeConfig } from '../lib/runtimeConfig'
+import type { OptionalServices } from '../lib/runtimeConfig'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -45,7 +46,7 @@ const HIGHLIGHTS: Highlight[] = [
 ]
 
 interface Dienst {
-  id: string
+  id: keyof OptionalServices
   name: string
   beschreibung: string
   url: string | null
@@ -219,7 +220,7 @@ export default function HomePage() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-          {DIENSTE.map((d) => <DienstKarte key={d.id} dienst={d} />)}
+          {DIENSTE.filter((d) => runtimeConfig.services[d.id]).map((d) => <DienstKarte key={d.id} dienst={d} />)}
           <PlatzhalterKarte />
         </div>
 

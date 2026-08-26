@@ -1,3 +1,15 @@
+// Only the five services with a DIENSTE launcher card on the home page -
+// schlussel is mandatory core (no card to hide), and glocke deliberately
+// has no card at all (reached via the header bell instead), so neither
+// belongs in this topology map.
+export interface OptionalServices {
+  kuvert: boolean
+  tafel: boolean
+  zettel: boolean
+  schrank: boolean
+  herold: boolean
+}
+
 export interface RuntimeConfig {
   schemaVersion: 1
   kuvertUrl: string
@@ -7,6 +19,7 @@ export interface RuntimeConfig {
   schrankUrl: string
   heroldUrl: string
   schlusselUrl: string
+  services: OptionalServices
 }
 
 const DEFAULTS: RuntimeConfig = {
@@ -18,9 +31,10 @@ const DEFAULTS: RuntimeConfig = {
   schrankUrl: 'http://localhost:5178',
   heroldUrl: 'http://localhost:5179',
   schlusselUrl: 'http://localhost:4001',
+  services: { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true },
 }
 
-type UrlField = Exclude<keyof RuntimeConfig, 'schemaVersion'>
+type UrlField = Exclude<keyof RuntimeConfig, 'schemaVersion' | 'services'>
 
 function parseOrigin(field: UrlField, value: unknown): string {
   if (value === undefined || (typeof value === 'string' && value.trim() === '')) {
@@ -54,6 +68,28 @@ function parseOrigin(field: UrlField, value: unknown): string {
   return url.origin
 }
 
+// Missing or non-boolean per-service flags default to enabled (true) - a
+// deployment that hasn't started emitting `services` yet (or a hand-edited
+// config.js) should keep showing every card, matching the platform's
+// behavior before this field existed, rather than hiding services nobody
+// asked to disable.
+function parseServices(value: unknown): OptionalServices {
+  const source = typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {}
+  const flag = (name: keyof OptionalServices): boolean => {
+    const raw = source[name]
+    return typeof raw === 'boolean' ? raw : true
+  }
+  return {
+    kuvert: flag('kuvert'),
+    tafel: flag('tafel'),
+    zettel: flag('zettel'),
+    schrank: flag('schrank'),
+    herold: flag('herold'),
+  }
+}
+
 export function parseRuntimeConfig(value: unknown): RuntimeConfig {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     throw new Error('Invalid runtime config: expected an object')
@@ -73,6 +109,7 @@ export function parseRuntimeConfig(value: unknown): RuntimeConfig {
     schrankUrl: parseOrigin('schrankUrl', source.schrankUrl),
     heroldUrl: parseOrigin('heroldUrl', source.heroldUrl),
     schlusselUrl: parseOrigin('schlusselUrl', source.schlusselUrl),
+    services: parseServices(source.services),
   }
 }
 

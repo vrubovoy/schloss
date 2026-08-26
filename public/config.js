@@ -7,4 +7,5 @@ window.__HOF_CONFIG__ = {
   schrankUrl: 'http://localhost:5178',
   heroldUrl: 'http://localhost:5179',
   schlusselUrl: 'http://localhost:4001',
+  services: { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true },
 }
