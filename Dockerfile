@@ -30,28 +30,23 @@ COPY . .
 # imports it.
 RUN pnpm --filter @zudar107/schloss-ui build
 
-# Vite bakes import.meta.env.VITE_* into the bundle at build time, so
-# this must be declared as an ARG to actually receive the value passed
-# via docker-compose's build.args - without it, the value is silently
-# discarded and the build always falls back to its hardcoded default.
-ARG VITE_KUVERT_URL=http://localhost:5174
-ARG VITE_TAFEL_URL=http://localhost:5175
-ARG VITE_ZETTEL_URL=http://localhost:5176
-ARG VITE_GLOCKE_URL=http://localhost:5177
-ARG VITE_SCHRANK_URL=http://localhost:5178
-ARG VITE_HEROLD_URL=http://localhost:5179
-ARG VITE_SCHLUSSEL_URL=http://localhost:4001
 RUN pnpm build
 
 # ---
 
 FROM caddy:2-alpine AS runner
 
-RUN setcap -r /usr/bin/caddy \
+RUN apk add --no-cache jq \
+    && setcap -r /usr/bin/caddy \
     && addgroup -S -g 10001 caddy-app \
-    && adduser -S -D -H -u 10001 -G caddy-app caddy-app
+    && adduser -S -D -H -u 10001 -G caddy-app caddy-app \
+    && mkdir -p /config \
+    && chown caddy-app:caddy-app /config
 COPY --from=builder --chown=caddy-app:caddy-app /app/dist /srv
 COPY --chown=caddy-app:caddy-app Caddyfile /etc/caddy/Caddyfile
+COPY --chmod=755 --chown=caddy-app:caddy-app docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 80
 USER caddy-app
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

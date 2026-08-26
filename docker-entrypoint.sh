@@ -1,0 +1,30 @@
+#!/bin/sh
+set -eu
+
+tmp="$(mktemp /config/config.js.XXXXXX)"
+trap 'rm -f "$tmp"' EXIT HUP INT TERM
+
+printf '%s' 'window.__HOF_CONFIG__ = ' > "$tmp"
+jq -n \
+  --arg kuvertUrl "${KUVERT_URL:-}" \
+  --arg tafelUrl "${TAFEL_URL:-}" \
+  --arg zettelUrl "${ZETTEL_URL:-}" \
+  --arg glockeUrl "${GLOCKE_URL:-}" \
+  --arg schrankUrl "${SCHRANK_URL:-}" \
+  --arg heroldUrl "${HEROLD_URL:-}" \
+  --arg schlusselUrl "${SCHLUSSEL_WEB_URL:-}" \
+  '{
+    schemaVersion: 1,
+    kuvertUrl: $kuvertUrl,
+    tafelUrl: $tafelUrl,
+    zettelUrl: $zettelUrl,
+    glockeUrl: $glockeUrl,
+    schrankUrl: $schrankUrl,
+    heroldUrl: $heroldUrl,
+    schlusselUrl: $schlusselUrl
+  }' >> "$tmp"
+printf ';\n' >> "$tmp"
+mv -f "$tmp" /config/config.js
+trap - EXIT HUP INT TERM
+
+exec "$@"

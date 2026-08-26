@@ -3,7 +3,7 @@ import { buildSchluesselLoginUrl, buildSchluesselLogoutUrl, CODE_VERIFIER_STORAG
 /**
  * Computes the expected URL directly from the behavioral spec:
  *
- *   base = {VITE_SCHLUSSEL_URL or 'http://localhost:4001'}
+ *   base = {runtimeConfig.schlusselUrl}
  *   returnTo = `${origin}/auth/callback?next=${encodeURIComponent(currentPath)}`
  *   result = `${base}/login?return_to=${encodeURIComponent(returnTo)}&code_challenge=...&code_challenge_method=S256`
  *
@@ -24,14 +24,11 @@ describe('buildSchluesselLoginUrl', () => {
   })
 
   afterEach(() => {
-    vi.unstubAllEnvs()
+    window.__HOF_CONFIG__.schlusselUrl = 'http://localhost:4001'
     sessionStorage.clear()
   })
 
-  it('falls back to http://localhost:4001 when VITE_SCHLUSSEL_URL is unset', async () => {
-    // Sanity: confirm the env var really is unset in this test environment.
-    expect(import.meta.env.VITE_SCHLUSSEL_URL).toBeUndefined()
-
+  it('uses the localhost runtime default', async () => {
     const result = await buildSchluesselLoginUrl('/dashboard')
     expect(result.startsWith('http://localhost:4001/login?')).toBe(true)
     expect(result).toContain(expectedReturnToParam(window.location.origin, '/dashboard'))
@@ -52,9 +49,11 @@ describe('buildSchluesselLoginUrl', () => {
     expect(result).not.toBe(other)
   })
 
-  it('reads VITE_SCHLUSSEL_URL from the environment when set', async () => {
-    vi.stubEnv('VITE_SCHLUSSEL_URL', 'https://schluessel.example.com')
-    const result = await buildSchluesselLoginUrl('/', 'https://app.example.com')
+  it('reads schlusselUrl from runtime config', async () => {
+    window.__HOF_CONFIG__.schlusselUrl = 'https://schluessel.example.com'
+    vi.resetModules()
+    const { buildSchluesselLoginUrl: buildConfiguredLoginUrl } = await import('../lib/authRedirect')
+    const result = await buildConfiguredLoginUrl('/', 'https://app.example.com')
     expect(result.startsWith('https://schluessel.example.com/login?')).toBe(true)
     expect(result).toContain(expectedReturnToParam('https://app.example.com', '/'))
   })
@@ -149,20 +148,19 @@ describe('buildSchluesselLogoutUrl', () => {
   })
 
   afterEach(() => {
-    vi.unstubAllEnvs()
+    window.__HOF_CONFIG__.schlusselUrl = 'http://localhost:4001'
     sessionStorage.clear()
   })
 
-  it('returns a URL starting with the schlussel URL followed by /logout', () => {
-    vi.stubEnv('VITE_SCHLUSSEL_URL', 'https://schluessel.example.com')
-    const result = buildSchluesselLogoutUrl('https://app.example.com/')
+  it('returns a URL using the configured schlussel origin', async () => {
+    window.__HOF_CONFIG__.schlusselUrl = 'https://schluessel.example.com'
+    vi.resetModules()
+    const { buildSchluesselLogoutUrl: buildConfiguredLogoutUrl } = await import('../lib/authRedirect')
+    const result = buildConfiguredLogoutUrl('https://app.example.com/')
     expect(result.startsWith('https://schluessel.example.com/logout?')).toBe(true)
   })
 
-  it('falls back to http://localhost:4001 when VITE_SCHLUSSEL_URL is unset', () => {
-    // Sanity: confirm the env var really is unset in this test environment.
-    expect(import.meta.env.VITE_SCHLUSSEL_URL).toBeUndefined()
-
+  it('uses the localhost runtime default', () => {
     const result = buildSchluesselLogoutUrl('https://app.example.com/')
     expect(result.startsWith('http://localhost:4001/logout?')).toBe(true)
   })

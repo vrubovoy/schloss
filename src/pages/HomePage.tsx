@@ -11,8 +11,7 @@ import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
 import { formatUptime } from '../lib/format'
 import { pluralizeRu } from '../lib/pluralize'
-
-const SCHLUSSEL_URL = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
+import { runtimeConfig } from '../lib/runtimeConfig'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -60,7 +59,7 @@ const DIENSTE: Dienst[] = [
     id: 'kuvert',
     name: 'Kuvert',
     beschreibung: 'Бюджет по методу конвертов',
-    url: (import.meta.env as Record<string, string>)['VITE_KUVERT_URL'] ?? 'http://localhost:5174',
+    url: runtimeConfig.kuvertUrl,
     // Same envelope glyph as Kuvert's own favicon/sidebar badge, not a
     // generic wallet - this card should read as "that specific service".
     icon: <Mail size={28} strokeWidth={1.5} />,
@@ -73,7 +72,7 @@ const DIENSTE: Dienst[] = [
     id: 'tafel',
     name: 'Tafel',
     beschreibung: 'Личные проекты и задачи',
-    url: (import.meta.env as Record<string, string>)['VITE_TAFEL_URL'] ?? 'http://localhost:5175',
+    url: runtimeConfig.tafelUrl,
     // Same checklist glyph as Tafel's own favicon/sidebar badge, not a
     // generic dashboard icon.
     icon: <ListChecks size={28} strokeWidth={1.5} />,
@@ -84,7 +83,7 @@ const DIENSTE: Dienst[] = [
     id: 'zettel',
     name: 'Zettel',
     beschreibung: 'Быстрое хранилище заметок',
-    url: (import.meta.env as Record<string, string>)['VITE_ZETTEL_URL'] ?? 'http://localhost:5176',
+    url: runtimeConfig.zettelUrl,
     // Same note-card glyph as Zettel's own favicon/sidebar badge - was
     // StickyNote by mistake, a different glyph than Zettel actually uses.
     icon: <NotebookText size={28} strokeWidth={1.5} />,
@@ -95,7 +94,7 @@ const DIENSTE: Dienst[] = [
     id: 'schrank',
     name: 'Schrank',
     beschreibung: 'Хранилище файлов с папками',
-    url: (import.meta.env as Record<string, string>)['VITE_SCHRANK_URL'] ?? 'http://localhost:5177',
+    url: runtimeConfig.schrankUrl,
     // Same wardrobe/archive glyph as Schrank's own favicon/sidebar badge.
     icon: <Archive size={28} strokeWidth={1.5} />,
     // Schrank's own real accent (brown), matching its HeroIllustration body.
@@ -106,7 +105,7 @@ const DIENSTE: Dienst[] = [
     id: 'herold',
     name: 'Herold',
     beschreibung: 'Почта из внешних IMAP/SMTP-аккаунтов',
-    url: (import.meta.env as Record<string, string>)['VITE_HEROLD_URL'] ?? 'http://localhost:5179',
+    url: runtimeConfig.heroldUrl,
     // Same inbox glyph as Herold's own favicon/sidebar badge - Mail is
     // already Kuvert's icon above, so a different one keeps the two
     // cards from reading as the same service at a glance.
@@ -127,12 +126,12 @@ const DIENSTE: Dienst[] = [
 export default function HomePage() {
   const { user, loading, logout } = useAuth()
   const notificationState = useUnreadNotifications({
-    glockeOrigin: GLOCKE_ORIGIN ?? '',
+    glockeOrigin: GLOCKE_ORIGIN,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
   const avatarUrl = useAvatarUrl({
-    schluesselOrigin: SCHLUSSEL_URL,
+    schluesselOrigin: runtimeConfig.schlusselUrl,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
@@ -177,9 +176,7 @@ export default function HomePage() {
           loggingOutRef.current = true
           void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() })
         }}
-        notifications={GLOCKE_NOTIFICATIONS_HREF
-          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN ?? '', apiClient: notificationApiClient }
-          : undefined}
+        notifications={{ href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }}
         rightSlot={<ThemeToggle />}
       />
 

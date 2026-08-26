@@ -25,8 +25,8 @@ describe('HelpPage - "Первые шаги" numbered list', () => {
 
   afterEach(() => {
     cleanup()
-    vi.unstubAllEnvs()
     vi.unstubAllGlobals()
+    window.__HOF_CONFIG__.glockeUrl = 'http://localhost:5177'
   })
 
   it('renders the "Первые шаги" ordered list with visible decimal numbering (not the Tailwind-preflight-stripped "none")', () => {
@@ -71,12 +71,12 @@ describe('HelpPage - shared Glocke notification bell', () => {
 
   afterEach(() => {
     cleanup()
-    vi.unstubAllEnvs()
     vi.unstubAllGlobals()
+    window.__HOF_CONFIG__.glockeUrl = 'http://localhost:5177'
   })
 
   async function renderConfiguredHelp() {
-    vi.stubEnv('VITE_GLOCKE_URL', 'https://glocke.example.test')
+    window.__HOF_CONFIG__.glockeUrl = 'https://glocke.example.test'
     vi.resetModules()
     const { default: ConfiguredHelpPage } = await import('../pages/HelpPage')
     return render(<ConfiguredHelpPage />)

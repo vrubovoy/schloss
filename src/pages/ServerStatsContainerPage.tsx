@@ -10,8 +10,7 @@ import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/auth
 import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
 import { HISTORY_RANGE_OPTIONS } from '../lib/historyRange'
-
-const SCHLUSSEL_URL = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
+import { runtimeConfig } from '../lib/runtimeConfig'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -33,12 +32,12 @@ export default function ServerStatsContainerPage() {
   }, [loading, isAdmin, navigate])
 
   const notificationState = useUnreadNotifications({
-    glockeOrigin: GLOCKE_ORIGIN ?? '',
+    glockeOrigin: GLOCKE_ORIGIN,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
   const avatarUrl = useAvatarUrl({
-    schluesselOrigin: SCHLUSSEL_URL,
+    schluesselOrigin: runtimeConfig.schlusselUrl,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
@@ -87,9 +86,7 @@ export default function ServerStatsContainerPage() {
         user={{ ...user, avatarUrl }}
         onSettings={() => { window.location.href = buildSchluesselAccountUrl(window.location.pathname) }}
         onLogout={() => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }}
-        notifications={GLOCKE_NOTIFICATIONS_HREF
-          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN ?? '', apiClient: notificationApiClient }
-          : undefined}
+        notifications={{ href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }}
         rightSlot={<ThemeToggle />}
       />
 

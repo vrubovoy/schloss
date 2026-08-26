@@ -3,8 +3,7 @@ import { useAuth } from '../hooks/useAuth'
 import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
 import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
-
-const SCHLUSSEL_URL = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
+import { runtimeConfig } from '../lib/runtimeConfig'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -44,12 +43,12 @@ const SECTIONS: Section[] = [
 export default function HelpPage() {
   const { user, logout } = useAuth()
   const notificationState = useUnreadNotifications({
-    glockeOrigin: GLOCKE_ORIGIN ?? '',
+    glockeOrigin: GLOCKE_ORIGIN,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
   const avatarUrl = useAvatarUrl({
-    schluesselOrigin: SCHLUSSEL_URL,
+    schluesselOrigin: runtimeConfig.schlusselUrl,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
@@ -64,8 +63,8 @@ export default function HelpPage() {
         onLogout={user
           ? () => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }
           : undefined}
-        notifications={user && GLOCKE_NOTIFICATIONS_HREF
-          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN ?? '', apiClient: notificationApiClient }
+        notifications={user
+          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }
           : undefined}
         rightSlot={<ThemeToggle />}
       />

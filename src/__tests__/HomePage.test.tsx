@@ -72,14 +72,14 @@ describe('HomePage', () => {
 
   afterEach(() => {
     cleanup()
-    vi.unstubAllEnvs()
     vi.unstubAllGlobals()
+    window.__HOF_CONFIG__.glockeUrl = 'http://localhost:5177'
     // @ts-expect-error -- restore the real Location object
     window.location = originalLocation
   })
 
   async function renderConfiguredHome() {
-    vi.stubEnv('VITE_GLOCKE_URL', 'https://glocke.example.test')
+    window.__HOF_CONFIG__.glockeUrl = 'https://glocke.example.test'
     vi.resetModules()
     const { default: ConfiguredHomePage } = await import('../pages/HomePage')
     return render(<ConfiguredHomePage />)
@@ -191,28 +191,17 @@ describe('HomePage', () => {
       expect(within(bell).queryByText(/\d+/)).not.toBeInTheDocument()
     })
 
-    it('omits the bell when the configured origin is invalid', async () => {
-      useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
-      const { fetchMock, unread } = routedFetchMocks()
-      vi.stubGlobal('fetch', fetchMock)
-      vi.stubEnv('VITE_GLOCKE_URL', 'javascript:alert(1)')
+    it('fails module loading when the configured Glocke origin is invalid', async () => {
+      window.__HOF_CONFIG__.glockeUrl = 'javascript:alert(1)'
       vi.resetModules()
-      const { default: InvalidOriginHomePage } = await import('../pages/HomePage')
 
-      render(<InvalidOriginHomePage />)
-
-      expect(within(screen.getByRole('banner')).queryByRole('link', { name: /уведомлен/i })).not.toBeInTheDocument()
-      expect(document.documentElement.innerHTML).not.toContain('javascript:')
-      // An invalid Glocke origin only suppresses the unread-count fetch and
-      // the bell itself - the avatar fetch (useAvatarUrl) targets
-      // Schlüssel's own origin independently and is unaffected.
-      expect(unread).not.toHaveBeenCalled()
+      await expect(import('../pages/HomePage')).rejects.toThrow(/glockeUrl/)
     })
 
     it('uses the shared canonical Glocke origin for the header bell href', async () => {
       useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(unreadResponse(0)))
-      vi.stubEnv('VITE_GLOCKE_URL', 'https://GLOCKE.example.test:443/')
+      window.__HOF_CONFIG__.glockeUrl = 'https://GLOCKE.example.test:443/'
       vi.resetModules()
       const { default: CanonicalOriginHomePage } = await import('../pages/HomePage')
 
