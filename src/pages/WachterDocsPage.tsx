@@ -4,7 +4,7 @@ import { Header, Footer, ThemeToggle, useAvatarUrl, useUnreadNotifications } fro
 import { useAuth } from '../hooks/useAuth'
 import { getAccessToken } from '../lib/api'
 import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
-import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
+import { GLOCKE_ENABLED, GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
 import { runtimeConfig } from '../lib/runtimeConfig'
 import 'swagger-ui-dist/swagger-ui.css'
@@ -96,7 +96,7 @@ export default function WachterDocsPage() {
         user={{ ...user, avatarUrl }}
         onSettings={() => { window.location.href = buildSchluesselAccountUrl(window.location.pathname) }}
         onLogout={() => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }}
-        notifications={{ href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }}
+        notifications={GLOCKE_ENABLED ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient } : undefined}
         rightSlot={<ThemeToggle />}
       />
 

@@ -147,6 +147,19 @@ describe('HomePage', () => {
       expect(bell.getAttribute('href')).not.toContain('access-token-123')
     })
 
+    it('hides the bell entirely when Glocke is disabled for this deployment', async () => {
+      useAuthMock.mockReturnValue({ user: sampleUser, loading: false, logout: vi.fn(), setUser: vi.fn() })
+      const { fetchMock } = routedFetchMocks()
+      vi.stubGlobal('fetch', fetchMock)
+      ;(window.__HOF_CONFIG__.services as { glocke: boolean }).glocke = false
+
+      await renderConfiguredHome()
+
+      expect(within(screen.getByRole('banner')).queryByRole('link', { name: /уведомлен/i })).not.toBeInTheDocument()
+
+      ;(window.__HOF_CONFIG__.services as { glocke: boolean }).glocke = true
+    })
+
     it.each([
       { user: null, loading: true, label: 'while authentication is loading' },
       { user: null, loading: false, label: 'after authentication resolves without a user' },
