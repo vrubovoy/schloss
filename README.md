@@ -20,8 +20,10 @@ self-hosted personal services:
 - [`schloss-server-kit`](https://github.com/zudaR107/schloss-server-kit) — shared backend auth/CORS kit
 
 Schloss ("castle" / "lock" in German) is the home page and launcher for this suite of
-self-hosted personal services. It renders a static, configured card for each platform
-service; it does not discover services or probe whether they are currently available.
+self-hosted personal services. It renders a card for each platform service whose URL is
+configured for this deployment (an operator who disables a service by leaving its URL
+unset simply gets no card for it); it does not discover services or probe whether a
+configured one is currently available.
 The home page requires being signed in: an unauthenticated visitor is automatically
 redirected through Schlüssel's Authorization Code + PKCE flow and back. If the hosted
 auth origin still has a session, that round trip silently reuses it; otherwise Schlüssel
