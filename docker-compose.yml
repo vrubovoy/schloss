@@ -11,19 +11,19 @@ services:
   schloss:
     build:
       context: .
-      args:
-        VITE_KUVERT_URL: ${KUVERT_URL:-https://kuvert.localhost}
-        VITE_TAFEL_URL: ${TAFEL_URL:-https://tafel.localhost}
-        VITE_ZETTEL_URL: ${ZETTEL_URL:-https://zettel.localhost}
-        VITE_GLOCKE_URL: ${GLOCKE_URL:-https://glocke.localhost}
-        VITE_SCHRANK_URL: ${SCHRANK_URL:-https://schrank.localhost}
-        VITE_HEROLD_URL: ${HEROLD_URL:-https://herold.localhost}
-        VITE_SCHLUSSEL_URL: ${SCHLUSSEL_WEB_URL:-https://auth.localhost}
+    environment:
+      KUVERT_URL: ${KUVERT_URL:-https://kuvert.localhost}
+      TAFEL_URL: ${TAFEL_URL:-https://tafel.localhost}
+      ZETTEL_URL: ${ZETTEL_URL:-https://zettel.localhost}
+      GLOCKE_URL: ${GLOCKE_URL:-https://glocke.localhost}
+      SCHRANK_URL: ${SCHRANK_URL:-https://schrank.localhost}
+      HEROLD_URL: ${HEROLD_URL:-https://herold.localhost}
+      SCHLUSSEL_WEB_URL: ${SCHLUSSEL_WEB_URL:-https://auth.localhost}
     restart: unless-stopped
     read_only: true
     tmpfs:
-      - /config
-      - /data
+      - /config:uid=10001,gid=10001,mode=0700
+      - /data:uid=10001,gid=10001,mode=0700
     cap_drop:
       - ALL
     security_opt:

@@ -1,6 +1,4 @@
-import { normalizeNotificationOrigin } from '@zudar107/schloss-ui'
+import { runtimeConfig } from './runtimeConfig'
 
-const configuredOrigin = (import.meta.env as Record<string, string>)['VITE_GLOCKE_URL'] ?? 'http://localhost:5177'
-
-export const GLOCKE_ORIGIN = normalizeNotificationOrigin(configuredOrigin)
-export const GLOCKE_NOTIFICATIONS_HREF = GLOCKE_ORIGIN ? `${GLOCKE_ORIGIN}/notifications` : null
+export const GLOCKE_ORIGIN = runtimeConfig.glockeUrl
+export const GLOCKE_NOTIFICATIONS_HREF = `${GLOCKE_ORIGIN}/notifications`

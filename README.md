@@ -65,14 +65,15 @@ pnpm lint
 
 ### Environment variables
 
-See `.env.example`. `VITE_KUVERT_URL`, `VITE_TAFEL_URL`, `VITE_ZETTEL_URL`,
-`VITE_GLOCKE_URL`, and `VITE_SCHLUSSEL_URL` are read at *build* time (Vite bakes them into the bundle) — they're
-where each static service card links to and where authentication/account/theme-sync
-navigations and requests are sent, respectively. `VITE_GLOCKE_URL` also supplies the
-trusted Glocke origin used by the authenticated header bell.
-`KUVERT_URL` / `TAFEL_URL` / `ZETTEL_URL` / `GLOCKE_URL` / `SCHLUSSEL_WEB_URL` are the same values, but
-as the Docker build args `docker-compose.yml` passes through. During `pnpm dev`, Vite
-proxies same-origin `/auth` requests to `SCHLUSSEL_API_URL`, which defaults to
+See `.env.example`. `KUVERT_URL`, `TAFEL_URL`, `ZETTEL_URL`, `GLOCKE_URL`,
+`SCHRANK_URL`, `HEROLD_URL`, and `SCHLUSSEL_WEB_URL` are runtime settings for the
+Docker image. At container startup they are written to `/config/config.js`, which the
+browser loads synchronously before the application bundle. Values must be HTTP or HTTPS
+origins without credentials, paths, queries, or fragments. `public/config.js` provides
+localhost defaults for `pnpm dev`; edit that file when testing alternate origins locally.
+`GLOCKE_URL` also supplies the trusted Glocke origin used by the authenticated header bell.
+
+During `pnpm dev`, Vite proxies same-origin `/auth` requests to `SCHLUSSEL_API_URL`, which defaults to
 `http://localhost:4000`. Like the production Caddy proxy, it strips any client-supplied
 `X-Schlussel-Frontend` trusted-origin header before forwarding the request.
 

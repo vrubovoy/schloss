@@ -6,9 +6,8 @@ import { getAccessToken } from '../lib/api'
 import { buildSchluesselLogoutUrl, buildSchluesselAccountUrl } from '../lib/authRedirect'
 import { GLOCKE_NOTIFICATIONS_HREF, GLOCKE_ORIGIN } from '../lib/glocke'
 import { notificationApiClient } from '../lib/notificationApiClient'
+import { runtimeConfig } from '../lib/runtimeConfig'
 import 'swagger-ui-dist/swagger-ui.css'
-
-const SCHLUSSEL_URL = (import.meta.env.VITE_SCHLUSSEL_URL as string | undefined) ?? 'http://localhost:4001'
 
 const LOGO = (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
@@ -36,12 +35,12 @@ export default function WachterDocsPage() {
   }, [loading, isAdmin, navigate])
 
   const notificationState = useUnreadNotifications({
-    glockeOrigin: GLOCKE_ORIGIN ?? '',
+    glockeOrigin: GLOCKE_ORIGIN,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
   const avatarUrl = useAvatarUrl({
-    schluesselOrigin: SCHLUSSEL_URL,
+    schluesselOrigin: runtimeConfig.schlusselUrl,
     userId: user?.id ?? null,
     apiClient: notificationApiClient,
   })
@@ -97,9 +96,7 @@ export default function WachterDocsPage() {
         user={{ ...user, avatarUrl }}
         onSettings={() => { window.location.href = buildSchluesselAccountUrl(window.location.pathname) }}
         onLogout={() => { void logout().then(() => { window.location.href = buildSchluesselLogoutUrl() }) }}
-        notifications={GLOCKE_NOTIFICATIONS_HREF
-          ? { href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN ?? '', apiClient: notificationApiClient }
-          : undefined}
+        notifications={{ href: GLOCKE_NOTIFICATIONS_HREF, state: notificationState, glockeOrigin: GLOCKE_ORIGIN, apiClient: notificationApiClient }}
         rightSlot={<ThemeToggle />}
       />
 

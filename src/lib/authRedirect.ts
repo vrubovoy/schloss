@@ -4,12 +4,12 @@
 // user has signed in; /auth/callback exchanges it for the real token, so
 // the token itself never travels through a URL.
 import { generateCodeVerifier, generateCodeChallenge } from './pkce'
+import { runtimeConfig } from './runtimeConfig'
 
-const DEFAULT_SCHLUSSEL_URL = 'http://localhost:4001'
 export const CODE_VERIFIER_STORAGE_KEY = 'pkce_code_verifier'
 
 export async function buildSchluesselLoginUrl(currentPath: string, origin: string = window.location.origin): Promise<string> {
-  const schluesselUrl = import.meta.env.VITE_SCHLUSSEL_URL ?? DEFAULT_SCHLUSSEL_URL
+  const schluesselUrl = runtimeConfig.schlusselUrl
   const returnTo = `${origin}/auth/callback?next=${encodeURIComponent(currentPath)}`
 
   const verifier = generateCodeVerifier()
@@ -33,7 +33,7 @@ export async function buildSchluesselLoginUrl(currentPath: string, origin: strin
 // the cookie there), which does the actual logout and bounces back to
 // returnTo.
 export function buildSchluesselLogoutUrl(returnTo: string = `${window.location.origin}/`): string {
-  const schluesselUrl = import.meta.env.VITE_SCHLUSSEL_URL ?? DEFAULT_SCHLUSSEL_URL
+  const schluesselUrl = runtimeConfig.schlusselUrl
   return `${schluesselUrl}/logout?return_to=${encodeURIComponent(returnTo)}`
 }
 
@@ -46,7 +46,7 @@ export function buildSchluesselLogoutUrl(returnTo: string = `${window.location.o
 // (unlike login) - this is a plain link, not a redirect that has to hand
 // a token back across the origin boundary.
 export function buildSchluesselAccountUrl(currentPath: string, origin: string = window.location.origin): string {
-  const schluesselUrl = import.meta.env.VITE_SCHLUSSEL_URL ?? DEFAULT_SCHLUSSEL_URL
+  const schluesselUrl = runtimeConfig.schlusselUrl
   const returnTo = `${origin}${currentPath}`
   return `${schluesselUrl}/account?return_to=${encodeURIComponent(returnTo)}`
 }
