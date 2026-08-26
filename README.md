@@ -72,6 +72,10 @@ browser loads synchronously before the application bundle. Values must be HTTP o
 origins without credentials, paths, queries, or fragments. `public/config.js` provides
 localhost defaults for `pnpm dev`; edit that file when testing alternate origins locally.
 `GLOCKE_URL` also supplies the trusted Glocke origin used by the authenticated header bell.
+Whichever of `KUVERT_URL`/`TAFEL_URL`/`ZETTEL_URL`/`SCHRANK_URL`/`HEROLD_URL` are left unset
+also disable that service's home-page launcher card (Schlüssel is mandatory core, and Glocke
+never had a card - see `HomePage.tsx`), so a deployment that omits an optional service's URL
+doesn't need to touch anything else to hide it.
 
 During `pnpm dev`, Vite proxies same-origin `/auth` requests to `SCHLUSSEL_API_URL`, which defaults to
 `http://localhost:4000`. Like the production Caddy proxy, it strips any client-supplied

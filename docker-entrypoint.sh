@@ -13,6 +13,11 @@ jq -n \
   --arg schrankUrl "${SCHRANK_URL:-}" \
   --arg heroldUrl "${HEROLD_URL:-}" \
   --arg schlusselUrl "${SCHLUSSEL_WEB_URL:-}" \
+  --argjson kuvertEnabled "$([ -n "${KUVERT_URL:-}" ] && echo true || echo false)" \
+  --argjson tafelEnabled "$([ -n "${TAFEL_URL:-}" ] && echo true || echo false)" \
+  --argjson zettelEnabled "$([ -n "${ZETTEL_URL:-}" ] && echo true || echo false)" \
+  --argjson schrankEnabled "$([ -n "${SCHRANK_URL:-}" ] && echo true || echo false)" \
+  --argjson heroldEnabled "$([ -n "${HEROLD_URL:-}" ] && echo true || echo false)" \
   '{
     schemaVersion: 1,
     kuvertUrl: $kuvertUrl,
@@ -21,7 +26,14 @@ jq -n \
     glockeUrl: $glockeUrl,
     schrankUrl: $schrankUrl,
     heroldUrl: $heroldUrl,
-    schlusselUrl: $schlusselUrl
+    schlusselUrl: $schlusselUrl,
+    services: {
+      kuvert: $kuvertEnabled,
+      tafel: $tafelEnabled,
+      zettel: $zettelEnabled,
+      schrank: $schrankEnabled,
+      herold: $heroldEnabled
+    }
   }' >> "$tmp"
 printf ';\n' >> "$tmp"
 mv -f "$tmp" /config/config.js

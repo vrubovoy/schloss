@@ -12,5 +12,6 @@ interface Window {
     schrankUrl?: unknown
     heroldUrl?: unknown
     schlusselUrl?: unknown
+    services?: unknown
   }
 }

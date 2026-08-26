@@ -11,6 +11,29 @@ describe('parseRuntimeConfig', () => {
       schrankUrl: 'http://localhost:5178',
       heroldUrl: 'http://localhost:5179',
       schlusselUrl: 'http://localhost:4001',
+      services: { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true },
+    })
+  })
+
+  it('defaults every service to enabled when `services` is absent', () => {
+    expect(parseRuntimeConfig({ schemaVersion: 1 }).services).toEqual({
+      kuvert: true, tafel: true, zettel: true, schrank: true, herold: true,
+    })
+  })
+
+  it('respects an explicit false per service and defaults the rest to enabled', () => {
+    expect(parseRuntimeConfig({ schemaVersion: 1, services: { tafel: false, schrank: false } }).services).toEqual({
+      kuvert: true, tafel: false, zettel: true, schrank: false, herold: true,
+    })
+  })
+
+  it('ignores a non-boolean value for one service and defaults it to enabled', () => {
+    expect(parseRuntimeConfig({ schemaVersion: 1, services: { kuvert: 'no' } }).services.kuvert).toBe(true)
+  })
+
+  it('treats a non-object `services` value as absent (every service enabled)', () => {
+    expect(parseRuntimeConfig({ schemaVersion: 1, services: 'nope' }).services).toEqual({
+      kuvert: true, tafel: true, zettel: true, schrank: true, herold: true,
     })
   })
 
