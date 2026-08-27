@@ -229,7 +229,7 @@ export default function HomePage() {
             auxiliary/infrastructure service, not a content app). Placed
             after the launcher grid, an "ops corner" rather than
             competing with the page's actual purpose for everyone else. */}
-        {user.role === 'admin' && <ServerStatsWidget />}
+        {user.role === 'admin' && runtimeConfig.services.wachter && <ServerStatsWidget />}
       </main>
 
       <Footer serviceName="Schloss" description="Домашняя страница и точка входа" version={__APP_VERSION__} helpHref="/help" />
