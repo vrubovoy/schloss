@@ -9,6 +9,7 @@ export interface OptionalServices {
   schrank: boolean
   herold: boolean
   glocke: boolean
+  wachter: boolean
 }
 
 export interface RuntimeConfig {
@@ -32,7 +33,7 @@ const DEFAULTS: RuntimeConfig = {
   schrankUrl: 'http://localhost:5178',
   heroldUrl: 'http://localhost:5179',
   schlusselUrl: 'http://localhost:4001',
-  services: { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true, glocke: true },
+  services: { kuvert: true, tafel: true, zettel: true, schrank: true, herold: true, glocke: true, wachter: false },
 }
 
 type UrlField = Exclude<keyof RuntimeConfig, 'schemaVersion' | 'services'>
@@ -78,9 +79,9 @@ function parseServices(value: unknown): OptionalServices {
   const source = typeof value === 'object' && value !== null && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {}
-  const flag = (name: keyof OptionalServices): boolean => {
+  const flag = (name: keyof OptionalServices, fallback = true): boolean => {
     const raw = source[name]
-    return typeof raw === 'boolean' ? raw : true
+    return typeof raw === 'boolean' ? raw : fallback
   }
   return {
     kuvert: flag('kuvert'),
@@ -89,6 +90,7 @@ function parseServices(value: unknown): OptionalServices {
     schrank: flag('schrank'),
     herold: flag('herold'),
     glocke: flag('glocke'),
+    wachter: flag('wachter', false),
   }
 }
 

@@ -12,12 +12,13 @@ services:
     build:
       context: .
     environment:
-      KUVERT_URL: ${KUVERT_URL:-https://kuvert.localhost}
-      TAFEL_URL: ${TAFEL_URL:-https://tafel.localhost}
-      ZETTEL_URL: ${ZETTEL_URL:-https://zettel.localhost}
-      GLOCKE_URL: ${GLOCKE_URL:-https://glocke.localhost}
-      SCHRANK_URL: ${SCHRANK_URL:-https://schrank.localhost}
-      HEROLD_URL: ${HEROLD_URL:-https://herold.localhost}
+      KUVERT_URL: ${KUVERT_URL:-}
+      TAFEL_URL: ${TAFEL_URL:-}
+      ZETTEL_URL: ${ZETTEL_URL:-}
+      GLOCKE_URL: ${GLOCKE_URL:-}
+      SCHRANK_URL: ${SCHRANK_URL:-}
+      HEROLD_URL: ${HEROLD_URL:-}
+      WACHTER_ENABLED: ${WACHTER_ENABLED:-false}
       SCHLUSSEL_WEB_URL: ${SCHLUSSEL_WEB_URL:-https://auth.localhost}
     restart: unless-stopped
     read_only: true
