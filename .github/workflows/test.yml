@@ -148,7 +148,7 @@ jobs:
           push-to-registry: true
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: ghcr.io/vrubovoy/schloss
           subject-digest: ${{ steps.build.outputs.digest }}
